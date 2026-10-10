@@ -73,15 +73,58 @@ import Image from "next/image";
 //   );
 // }
 
+import { useState } from "react";
 import StreetMap from "../components/map/StreetMap";
+import Camera from "../components/camera";
 
 export default function Home() {
+    const [showCamera, setShowCamera] = useState(false);
+
     return (
         <main>
             <h1>Nearby Streets</h1>
-            <StreetMap />
+
+            <div
+                style={{
+                    position: "relative",
+                    width: "100%",
+                }}
+            >
+                <StreetMap />
+
+                {showCamera && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "20px",
+                            right: "20px",
+                            zIndex: 2000,
+                            background: "white",
+                            padding: "10px",
+                            borderRadius: "10px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                        }}
+                    >
+                        <Camera />
+                    </div>
+                )}
+
+                <button
+                    onClick={() => setShowCamera(!showCamera)}
+                    style={{
+                        position: "absolute",
+                        top: "20px",
+                        left: "20px",
+                        zIndex: 2001,
+                        background: "black",
+                    }}
+                >
+                    {showCamera ? "Close Camera" : "Open Camera"}
+                </button>
+            </div>
         </main>
     );
+
 }
 
 async function getCalories() {
