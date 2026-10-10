@@ -9,6 +9,11 @@ const MapView = dynamic(
   { ssr: false }
 );
 
+const Camera = dynamic(
+() => import("./components/camera").then((mod) => mod.default),
+{ ssr: false }
+);
+
 export default function Home() {
   const [stepGoal, setStepGoal] = useState<number>(5000);
   const [currentSteps, setCurrentSteps] = useState<number>(3200);
@@ -47,6 +52,9 @@ export default function Home() {
 
         {/* Map View */}
         <MapView currentSteps={currentSteps} stepGoal={stepGoal} />
+
+        {/* Call this component to enable the webcam */}
+        <Camera />
       </div>
     </main>
   );
