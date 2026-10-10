@@ -29,6 +29,7 @@ CREATE INDEX food_collectible_types_active_category_idx
     WHERE is_active;
 
 CREATE TABLE food_collectible_appearances (
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
     poi_id UUID NOT NULL
         REFERENCES pois (id)
         ON DELETE RESTRICT,
@@ -42,7 +43,6 @@ CREATE TABLE food_collectible_appearances (
         CHECK (jsonb_typeof(metadata) = 'object'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (poi_id, food_collectible_type_id),
     CONSTRAINT food_collectible_appearances_window_check
         CHECK (
             available_until IS NULL
@@ -116,6 +116,19 @@ CREATE TABLE food_collectible_events (
             from_user_id IS NULL
             OR to_user_id IS NULL
             OR from_user_id <> to_user_id
+        ),
+    CONSTRAINT food_collectible_events_transfer_shape_check
+        CHECK (
+            (event_type = 'acquired'
+                AND from_user_id IS NULL
+                AND to_user_id IS NOT NULL)
+            OR (event_type = 'transferred'
+                AND from_user_id IS NOT NULL
+                AND to_user_id IS NOT NULL)
+            OR (event_type = 'released'
+                AND from_user_id IS NOT NULL
+                AND to_user_id IS NULL)
+            OR event_type NOT IN ('acquired', 'transferred', 'released')
         )
 );
 

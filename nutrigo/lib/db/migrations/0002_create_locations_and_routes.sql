@@ -104,6 +104,21 @@ CREATE INDEX saved_routes_user_updated_idx
 CREATE INDEX saved_routes_path_gist_idx
     ON saved_routes USING GIST (route_path);
 
+CREATE OR REPLACE FUNCTION set_route_distance()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.distance_meters = ST_Length(NEW.route_path);
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER saved_routes_set_distance
+BEFORE INSERT OR UPDATE OF route_path ON saved_routes
+FOR EACH ROW
+EXECUTE FUNCTION set_route_distance();
+
 CREATE TABLE saved_route_pois (
     route_id UUID NOT NULL
         REFERENCES saved_routes (id)
