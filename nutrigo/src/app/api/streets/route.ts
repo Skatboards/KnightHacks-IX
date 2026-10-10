@@ -1,69 +1,77 @@
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const foodName = searchParams.get("food");
-
-    if (!foodName) {
-        return NextResponse.json(
-            { error: "Please provide a food name." },
-            { status: 400 }
-        );
-    }
-
-    const apiKey = process.env.USDA_API_KEY;
-
-    if (!apiKey) {
-        return NextResponse.json(
-            { error: "USDA API key is not configured." },
-            { status: 500 }
-        );
-    }
-
-    const url = new URL(
-        "https://api.nal.usda.gov/fdc/v1/foods/search"
-    );
-
-    url.searchParams.set("api_key", apiKey);
-    url.searchParams.set("query", foodName);
-    url.searchParams.set("pageSize", "10");
-    url.searchParams.set("dataType", "Foundation");
-
+export async function POST(request: NextRequest) {
     try {
-        const response = await fetch(url);
+        const { latitude, longitude } = await request.json();
 
-        if (!response.ok) {
+        if (
+            typeof latitude !== "number" ||
+            typeof longitude !== "number" ||
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude) ||
+            Math.abs(latitude) > 90 ||
+            Math.abs(longitude) > 180
+        ) {
             return NextResponse.json(
-                { error: "USDA API request failed." },
-                { status: 502 }
+                { error: "Invalid coordinates" },
+                { status: 400 }
             );
         }
 
-        const data = await response.json();
-        const food = data.foods?.[0];
+        const query = `
+            [out:json][timeout:20];
+            way(around:250,${latitude},${longitude})
+                ["highway"]
+                ["highway"!~"footway|path|steps|cycleway"];
+            out geom;
+        `;
 
-        if (!food) {
-            return NextResponse.json(
-                { error: "Food not found." },
-                { status: 404 }
-            );
+        const servers = [
+            "https://overpass-api.de/api/interpreter",
+            "https://overpass.kumi.systems/api/interpreter",
+        ];
+
+        for (const server of servers) {
+            try {
+                const response = await fetch(server, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded",
+                        "User-Agent": "NutriGo/1.0",
+                    },
+                    body: new URLSearchParams({ data: query }),
+                    signal: AbortSignal.timeout(25000),
+                    cache: "no-store",
+                });
+
+                if (!response.ok) {
+                    console.error(
+                        `Overpass ${server} returned ${response.status}`
+                    );
+                    continue;
+                }
+
+                const data = await response.json();
+
+                return NextResponse.json({
+                    elements: data.elements ?? [],
+                });
+            } catch (error) {
+                console.error(`Overpass request failed: ${server}`, error);
+            }
         }
 
-        const energy = food.foodNutrients?.find(
-            (n: { nutrientName: string; unitName: string }) =>
-                n.nutrientName === "Energy" &&
-                n.unitName?.toLowerCase() === "kcal"
-        );
-
-        return NextResponse.json({
-            food: food.description,
-            calories: energy?.value ?? null,
-            unit: energy?.unitName ?? null
-        });
-    } catch {
         return NextResponse.json(
-            { error: "Failed to retrieve food data." },
+            { error: "All Overpass servers failed. Try again later." },
+            { status: 502 }
+        );
+    } catch (error) {
+        console.error("Street API error:", error);
+
+        return NextResponse.json(
+            { error: "Unable to retrieve nearby streets." },
             { status: 500 }
         );
     }
