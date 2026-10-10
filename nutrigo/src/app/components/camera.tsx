@@ -2,8 +2,8 @@ import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 
 const WebcamComponent = () => {
-  const webcamRef = useRef(null);
-  const [imgSrc, setImgSrc] = useState(null);
+  const webcamRef = useRef<Webcam | null>(null);
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
 
   // Optional configuration constraints (forces front camera on mobile)
   const videoConstraints = {
@@ -13,9 +13,11 @@ const WebcamComponent = () => {
   };
 
   const captureSnapshot = () => {
-    // Captures the current frame as a base64 encoded JPEG string
-    const imageSrc = webcamRef.current.getScreenshot();
-    setImgSrc(imageSrc);
+      const imageSrc = webcamRef.current?.getScreenshot();
+
+      if (imageSrc) {
+          setImgSrc(imageSrc);
+      }
   };
 
   return (
