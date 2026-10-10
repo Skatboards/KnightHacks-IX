@@ -27,7 +27,8 @@ export async function GET(request: Request) {
 
     url.searchParams.set("api_key", apiKey);
     url.searchParams.set("query", foodName);
-    url.searchParams.set("pageSize", "1");
+    url.searchParams.set("pageSize", "10");
+    url.searchParams.set("dataType", "Foundation");
 
     try {
         const response = await fetch(url);
