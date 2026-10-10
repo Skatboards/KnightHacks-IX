@@ -73,7 +73,7 @@ import Image from "next/image";
 //   );
 // }
 
-import StreetMap from "./StreetMap";
+import StreetMap from "../components/map/StreetMap";
 
 export default function Home() {
     return (
