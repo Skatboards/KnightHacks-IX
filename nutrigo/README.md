@@ -2,21 +2,44 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+Install [Node.js 20.9 or later](https://nodejs.org/). npm is included with
+Node.js.
+
+### Install dependencies
+
+From the `nutrigo` directory, install the dependencies listed in
+`package.json`:
+
+```bash
+npm install
+```
+
+This installs Next.js, React, React DOM, Leaflet, React Leaflet, TypeScript,
+Tailwind CSS, ESLint, and the related type definitions. No additional
+packages are required.
+
+### Run locally
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You can start editing the page by modifying `src/app/page.tsx`. The page
+auto-updates as you edit the file.
+
+### Verify the project
+
+Create a production build with:
+
+```bash
+npm run build
+```
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
