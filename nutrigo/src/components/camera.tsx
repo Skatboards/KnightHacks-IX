@@ -41,6 +41,22 @@ const WebcamComponent = () => {
           <img src={imgSrc} alt="webcam snapshot" />
         </div>
       )}
+
+      <img
+            src="/banana.png"
+            alt="Banana"
+            onClick={() => console.log("hello world")}
+            style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "100px",
+                height: "auto",
+                cursor: "pointer",
+                zIndex: 10,
+            }}
+        />
     </div>
   );
 };
