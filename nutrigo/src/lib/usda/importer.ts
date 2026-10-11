@@ -48,6 +48,7 @@ type NutritionData = {
 
 type ImportedFood = {
     externalId: string;
+    assetKey: string;
     name: string;
     description: string;
     category: FoodCategory;
@@ -196,6 +197,7 @@ export function transformUsdaFood(food: UsdaFood): ImportedFood {
 
     return {
         externalId: `usda:fdc:${food.fdcId}`,
+        assetKey: `usda-fdc-${food.fdcId}`,
         name,
         description: name,
         category: mapUsdaCategory(rawCategory),
@@ -285,14 +287,16 @@ async function upsertFood(food: ImportedFood, query: DbQuery) {
                 description,
                 category,
                 rarity,
+                asset_key,
                 nutrition_data,
                 metadata
             )
-            VALUES ($1, $2, $3, $4, 'none', $5::jsonb, $6::jsonb)
+            VALUES ($1, $2, $3, $4, 'none', $5, $6::jsonb, $7::jsonb)
             ON CONFLICT (external_id) DO UPDATE SET
                 name = EXCLUDED.name,
                 description = EXCLUDED.description,
                 category = EXCLUDED.category,
+                asset_key = COALESCE(food_collectible_types.asset_key, EXCLUDED.asset_key),
                 nutrition_data = EXCLUDED.nutrition_data,
                 metadata = EXCLUDED.metadata,
                 updated_at = now()
@@ -303,6 +307,7 @@ async function upsertFood(food: ImportedFood, query: DbQuery) {
             food.name,
             food.description,
             food.category,
+            food.assetKey,
             JSON.stringify(food.nutritionData),
             JSON.stringify(food.metadata),
         ]

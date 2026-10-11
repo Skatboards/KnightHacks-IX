@@ -2,11 +2,12 @@
 
 set -Eeuo pipefail
 
-project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd "$script_dir/../.." && pwd)"
 compose_file="$project_root/compose.yaml"
 compose_project="nutrigo"
 database_volume="${compose_project}_nutrigo-pgdata"
-seed_file="$project_root/scripts/seed-dev-db.sql"
+seed_file="$script_dir/seed-dev-db.sql"
 
 if docker compose version >/dev/null 2>&1; then
   compose=(docker compose)

@@ -37,6 +37,7 @@ INSERT INTO food_collectible_types (
     description,
     category,
     rarity,
+    asset_key,
     nutrition_data,
     metadata
 )
@@ -48,6 +49,7 @@ VALUES
         'A deterministic food record for local development.',
         'fruit',
         'common',
+        'golden-apple',
         '{"calories": 95, "serving_amount": 100, "serving_unit": "g", "basis": "per_100g"}'::jsonb,
         '{"source": "local-seed"}'::jsonb
     ),
@@ -58,6 +60,7 @@ VALUES
         'A deterministic food record for local development.',
         'fruit',
         'common',
+        'banana',
         '{"calories": 89, "serving_amount": 100, "serving_unit": "g", "basis": "per_100g"}'::jsonb,
         '{"source": "local-seed"}'::jsonb
     ),
@@ -68,7 +71,19 @@ VALUES
         'A deterministic food record for local development.',
         'snack',
         'rare',
+        'trail-mix',
         '{"calories": 462, "serving_amount": 100, "serving_unit": "g", "basis": "per_100g"}'::jsonb,
+        '{"source": "local-seed"}'::jsonb
+    ),
+    (
+        'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        'dev:placeholder:released-pear',
+        'Placeholder Released Pear',
+        'A deterministic previously-owned food record for local development.',
+        'fruit',
+        'uncommon',
+        'released-pear',
+        '{"calories": 57, "serving_amount": 100, "serving_unit": "g", "basis": "per_100g"}'::jsonb,
         '{"source": "local-seed"}'::jsonb
     )
 ON CONFLICT (id) DO UPDATE SET
@@ -77,6 +92,7 @@ ON CONFLICT (id) DO UPDATE SET
     description = EXCLUDED.description,
     category = EXCLUDED.category,
     rarity = EXCLUDED.rarity,
+    asset_key = EXCLUDED.asset_key,
     nutrition_data = EXCLUDED.nutrition_data,
     metadata = EXCLUDED.metadata,
     is_active = TRUE;
@@ -132,6 +148,12 @@ VALUES
         '66666666-6666-4666-8666-666666666666',
         '33333333-3333-4333-8333-333333333333',
         '{"source": "local-seed"}'::jsonb
+    ),
+    (
+        'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+        '66666666-6666-4666-8666-666666666666',
+        'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        '{"source": "local-seed"}'::jsonb
     )
 ON CONFLICT (id) DO UPDATE SET
     poi_id = EXCLUDED.poi_id,
@@ -165,6 +187,15 @@ VALUES
         '66666666-6666-4666-8666-666666666666',
         '2026-01-02T12:00:00Z',
         'active',
+        '{"source": "local-seed"}'::jsonb
+    ),
+    (
+        '99999999-9999-4999-8999-999999999993',
+        '11111111-1111-4111-8111-111111111111',
+        'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        '66666666-6666-4666-8666-666666666666',
+        '2026-01-03T12:00:00Z',
+        'released',
         '{"source": "local-seed"}'::jsonb
     )
 ON CONFLICT (id) DO UPDATE SET
@@ -204,6 +235,16 @@ VALUES
         'acquired',
         '66666666-6666-4666-8666-666666666666',
         '2026-01-02T12:00:00Z',
+        '{"source": "local-seed"}'::jsonb
+    ),
+    (
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
+        '99999999-9999-4999-8999-999999999993',
+        '11111111-1111-4111-8111-111111111111',
+        '11111111-1111-4111-8111-111111111111',
+        'acquired',
+        '66666666-6666-4666-8666-666666666666',
+        '2026-01-03T12:00:00Z',
         '{"source": "local-seed"}'::jsonb
     )
 ON CONFLICT (id) DO UPDATE SET

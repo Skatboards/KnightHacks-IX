@@ -5,7 +5,7 @@
 | Method | Endpoint | Purpose | Authentication |
 | --- | --- | --- | --- |
 | `GET` | `/api/foods` | Look up an imported food by name or external ID. | None |
-| `GET` | `/api/collectibles` | Fetch the configured user's active owned collectibles in batches. | None currently |
+| `GET` | `/api/collectibles` | Fetch a paginated collectible catalog with current user ownership state. | None currently |
 | `GET` | `/api/admin/usda/foods` | Fetch a paginated USDA catalog page and its importable FDC IDs. | Temporary admin bearer token |
 | `POST` | `/api/admin/usda/imports` | Import or update USDA food records by FDC ID. | Temporary admin bearer token |
 
@@ -26,52 +26,59 @@ is unavailable.
 The response includes the internal food ID, external ID, display name,
 category, rarity, calories, serving information, and nutrition data.
 
-## Owned collectibles
+## Collectible catalog
 
-Fetch the configured user's active collectibles in cursor-paginated batches:
+Fetch the configured user's collectible catalog in cursor-paginated batches. The
+default scope returns only currently owned collectible types; use `scope=all` to
+return every active collectible type and its ownership state:
 
 ```http
 GET /api/collectibles?limit=25
+GET /api/collectibles?scope=all&limit=25
 ```
 
 ### Query parameters
 
 - `limit` — Optional batch size from `1` to `100`. Defaults to `25`.
+- `scope` — Optional `owned` or `all`. Defaults to `owned`.
 - `cursor` — Optional opaque cursor returned by the previous response.
 
 Request the next batch with the returned cursor:
 
 ```http
-GET /api/collectibles?limit=25&cursor=<nextCursor>
+GET /api/collectibles?scope=all&limit=25&cursor=<nextCursor>
 ```
 
 ### Response
 
 ```json
 {
-  "items": [
-    {
-      "id": "owned-instance-id",
-      "status": "active",
-      "acquiredAt": "2026-10-11T12:00:00.000Z",
-      "metadata": {},
-      "food": {
+  "scope": "all",
+  "groups": {
+    "owned": [
+      {
         "id": "food-type-id",
         "externalId": "usda:fdc:747448",
         "name": "Example Food",
         "description": "Example description",
         "category": "fruit",
         "rarity": "common",
-        "nutritionData": {}
-      },
-      "acquiredPoi": {
-        "id": "poi-id",
-        "name": "Walking Collectible",
-        "latitude": 28.6017,
-        "longitude": -81.1992
+        "assetKey": "example-food",
+        "metadata": {},
+        "nutritionData": {},
+        "ownershipStatus": "owned",
+        "ownedCount": 2
       }
-    }
-  ],
+    ],
+    "previously_owned": [],
+    "never_acquired": []
+  },
+  "summary": {
+    "total": 100,
+    "owned": 24,
+    "previouslyOwned": 8,
+    "neverAcquired": 68
+  },
   "pagination": {
     "limit": 25,
     "hasMore": true,
@@ -80,9 +87,17 @@ GET /api/collectibles?limit=25&cursor=<nextCursor>
 }
 ```
 
-The endpoint only returns records with an `active` ownership status. Until
+`ownershipStatus` is one of `owned`, `previously_owned`, or `never_acquired`.
+`ownedCount` counts the user's active instances of that collectible type. The
+summary is calculated by the database across the full active catalog, not only
+the current page. The ownership groups contain the entries from the current
+page, so clients should merge groups while loading additional pages. Until
 authentication is added, the user is selected by the server-only
 `NUTRIGO_USER_ID` environment variable.
+
+The catalog's `assetKey` is a stable application-owned asset identifier. USDA
+FoodData Central provides nutrition and food metadata, but the application
+should supply the collectible artwork separately.
 
 ## USDA food ID catalog
 

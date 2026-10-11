@@ -1,23 +1,26 @@
 import { NextResponse } from "next/server";
 import {
-    findOwnedCollectibles,
-    type OwnedCollectiblesCursor,
-} from "@/lib/db/owned-collectibles";
+    findCollectibleCatalog,
+    type CollectibleCatalogItem,
+    type CollectibleOwnershipStatus,
+    type CollectiblesCursor,
+    type CollectiblesScope,
+} from "@/lib/db/collectible-catalog";
 
 const DEFAULT_BATCH_SIZE = 25;
 const MAX_BATCH_SIZE = 100;
 const UUID_PATTERN =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function decodeCursor(value: string): OwnedCollectiblesCursor | null {
+function decodeCursor(value: string): CollectiblesCursor | null {
     try {
         const cursor = JSON.parse(
             Buffer.from(value, "base64url").toString("utf8")
-        ) as Partial<OwnedCollectiblesCursor>;
+        ) as Partial<CollectiblesCursor>;
 
         if (
-            typeof cursor.acquiredAt !== "string" ||
-            !Number.isFinite(Date.parse(cursor.acquiredAt)) ||
+            typeof cursor.createdAt !== "string" ||
+            !Number.isFinite(Date.parse(cursor.createdAt)) ||
             typeof cursor.id !== "string" ||
             !UUID_PATTERN.test(cursor.id)
         ) {
@@ -25,7 +28,7 @@ function decodeCursor(value: string): OwnedCollectiblesCursor | null {
         }
 
         return {
-            acquiredAt: new Date(cursor.acquiredAt).toISOString(),
+            createdAt: new Date(cursor.createdAt).toISOString(),
             id: cursor.id,
         };
     } catch {
@@ -33,8 +36,22 @@ function decodeCursor(value: string): OwnedCollectiblesCursor | null {
     }
 }
 
-function encodeCursor(cursor: OwnedCollectiblesCursor) {
+function encodeCursor(cursor: CollectiblesCursor) {
     return Buffer.from(JSON.stringify(cursor)).toString("base64url");
+}
+
+function groupItems(items: CollectibleCatalogItem[]) {
+    const groups: Record<CollectibleOwnershipStatus, CollectibleCatalogItem[]> = {
+        owned: [],
+        previously_owned: [],
+        never_acquired: [],
+    };
+
+    for (const item of items) {
+        groups[item.ownershipStatus].push(item);
+    }
+
+    return groups;
 }
 
 export async function GET(request: Request) {
@@ -42,6 +59,9 @@ export async function GET(request: Request) {
     const rawLimit = searchParams.get("limit");
     const limit = rawLimit ? Number(rawLimit) : DEFAULT_BATCH_SIZE;
     const rawCursor = searchParams.get("cursor");
+    const rawScope = searchParams.get("scope") ?? "owned";
+    const scope: CollectiblesScope =
+        rawScope === "all" || rawScope === "owned" ? rawScope : "owned";
 
     if (!Number.isInteger(limit) || limit < 1 || limit > MAX_BATCH_SIZE) {
         return NextResponse.json(
@@ -50,7 +70,14 @@ export async function GET(request: Request) {
         );
     }
 
-    let cursor: OwnedCollectiblesCursor | undefined;
+    if (rawScope !== scope) {
+        return NextResponse.json(
+            { error: "scope must be either 'owned' or 'all'." },
+            { status: 400 }
+        );
+    }
+
+    let cursor: CollectiblesCursor | undefined;
     if (rawCursor) {
         cursor = decodeCursor(rawCursor) ?? undefined;
         if (!cursor) {
@@ -70,14 +97,17 @@ export async function GET(request: Request) {
     }
 
     try {
-        const collection = await findOwnedCollectibles({
+        const collection = await findCollectibleCatalog({
             userId,
+            scope,
             limit,
             cursor,
         });
 
         return NextResponse.json({
-            items: collection.items,
+            scope,
+            groups: groupItems(collection.items),
+            summary: collection.summary,
             pagination: {
                 limit,
                 hasMore: collection.hasMore,
@@ -87,9 +117,9 @@ export async function GET(request: Request) {
             },
         });
     } catch (error) {
-        console.error("Owned collectible lookup failed:", error);
+        console.error("Collectible catalog lookup failed:", error);
         return NextResponse.json(
-            { error: "Unable to load owned collectibles." },
+            { error: "Unable to load the collectible catalog." },
             { status: 503 }
         );
     }

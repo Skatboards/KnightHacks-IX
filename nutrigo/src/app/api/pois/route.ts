@@ -78,20 +78,22 @@ export async function POST(request: Request) {
     if (!collectibleTypeId) {
       const createdType = await client.query<{ id: string }>(
         `
-          INSERT INTO food_collectible_types (
-            name,
-            description,
-            category,
-            rarity,
-            nutrition_data
-          )
-          VALUES (
-            'Golden Apple',
-            'A collectible earned by completing a walking route.',
-            'fruit',
-            'common',
-            '{"calories": 95, "serving_unit": "piece"}'::jsonb
-          )
+            INSERT INTO food_collectible_types (
+                name,
+                description,
+                category,
+                rarity,
+                asset_key,
+                nutrition_data
+            )
+            VALUES (
+                'Golden Apple',
+                'A collectible earned by completing a walking route.',
+                'fruit',
+                'common',
+                'golden-apple',
+                '{"calories": 95, "serving_unit": "piece"}'::jsonb
+            )
           RETURNING id
         `
       );
@@ -186,13 +188,14 @@ export async function GET() {
         const createdType = await client.query<{ id: string }>(
           `
             INSERT INTO food_collectible_types (
-              name, description, category, rarity, nutrition_data
+              name, description, category, rarity, asset_key, nutrition_data
             )
             VALUES (
               'Golden Apple',
               'A collectible found while walking.',
               'fruit',
               'common',
+              'golden-apple',
               '{"calories": 95, "serving_unit": "piece"}'::jsonb
             )
             RETURNING id

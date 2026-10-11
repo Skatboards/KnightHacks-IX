@@ -198,6 +198,7 @@ CREATE TABLE food_collectible_types (
     description TEXT,
     category TEXT NOT NULL CHECK (btrim(category) <> ''),
     rarity TEXT NOT NULL DEFAULT 'none' CHECK (btrim(rarity) <> ''),
+    asset_key TEXT CHECK (asset_key IS NULL OR btrim(asset_key) <> ''),
     nutrition_data JSONB NOT NULL
         CHECK (
             jsonb_typeof(nutrition_data) = 'object'
@@ -216,6 +217,10 @@ CREATE TABLE food_collectible_types (
 
 CREATE INDEX food_collectible_types_active_category_idx
     ON food_collectible_types (category)
+    WHERE is_active;
+
+CREATE INDEX food_collectible_types_active_catalog_idx
+    ON food_collectible_types (created_at DESC, id DESC)
     WHERE is_active;
 
 CREATE TABLE food_collectible_appearances (
@@ -280,6 +285,9 @@ CREATE TABLE user_food_collectibles (
 CREATE INDEX user_food_collectibles_collection_idx
     ON user_food_collectibles (user_id, status, acquired_at DESC);
 
+CREATE INDEX user_food_collectibles_user_status_type_idx
+    ON user_food_collectibles (user_id, status, food_collectible_type_id);
+
 CREATE INDEX user_food_collectibles_type_idx
     ON user_food_collectibles (food_collectible_type_id, acquired_poi_id);
 
@@ -342,6 +350,10 @@ CREATE INDEX food_collectible_events_from_user_idx
 
 CREATE INDEX food_collectible_events_to_user_idx
     ON food_collectible_events (to_user_id, occurred_at DESC)
+    WHERE to_user_id IS NOT NULL;
+
+CREATE INDEX food_collectible_events_recipient_type_idx
+    ON food_collectible_events (to_user_id, event_type, user_food_collectible_id)
     WHERE to_user_id IS NOT NULL;
 
 -- ============================================================================
