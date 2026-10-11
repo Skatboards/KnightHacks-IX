@@ -33,6 +33,27 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `src/app/page.tsx`. The page
 auto-updates as you edit the file.
 
+### Enable collectible saving
+
+The collectible route uses the PostgreSQL schema in
+[`lib/db/migrations/0001_initial.sql`](./lib/db/migrations/0001_initial.sql).
+Copy [`.env.example`](./.env.example) to `.env.local` and set:
+
+```env
+DATABASE_URL=postgresql://username:password@host:5432/database_name
+NUTRIGO_USER_ID=your-existing-users-table-uuid
+```
+
+`NUTRIGO_USER_ID` must be the ID of an active row in the `users` table. The
+current project does not have an authentication provider yet, so this server
+environment variable identifies the user while the feature is being tested.
+Replace it with the authenticated user's ID when authentication is added.
+
+When the player is within 100 meters of the generated Golden Apple marker,
+the **Collect** button in `src/app/components/MapView.tsx` calls the
+collectible API. The API records both the owned collectible and its `acquired`
+lifecycle event in one database transaction.
+
 ### Verify the project
 
 Create a production build with:

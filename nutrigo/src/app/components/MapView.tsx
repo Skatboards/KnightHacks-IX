@@ -2,9 +2,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  Popup,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
-import { Coordinate, fetchStreetRoute, generatePOILocation } from "@/lib/pathfinder";
+import {
+  Coordinate,
+  fetchStreetRoute,
+  generatePOILocation,
+  POIItem,
+} from "@/lib/pathfinder";
 
 const defaultIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -32,9 +44,55 @@ interface MapViewProps {
 
 export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
   const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
-  const [poi, setPoi] = useState<Coordinate | null>(null);
+  const [poi, setPoi] = useState<POIItem | null>(null);
   const [route, setRoute] = useState<[number, number][]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [collecting, setCollecting] = useState(false);
+  const [collected, setCollected] = useState(false);
+
+  const collectItem = () => {
+    if (!poi || collecting) {
+      return;
+    }
+
+    setCollecting(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const response = await fetch("/api/collectibles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              targetLatitude: poi.lat,
+              targetLongitude: poi.lng,
+            }),
+          });
+
+          const result = (await response.json()) as { error?: string };
+          if (!response.ok) {
+            throw new Error(result.error ?? "Unable to collect this item");
+          }
+
+          setCollected(true);
+        } catch (error) {
+          console.error("Collectible collection failed:", error);
+          alert(
+            error instanceof Error ? error.message : "Unable to collect this item"
+          );
+        } finally {
+          setCollecting(false);
+        }
+      },
+      (error) => {
+        console.error("Geolocation error while collecting:", error);
+        alert("Your location is required to collect this item.");
+        setCollecting(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -47,7 +105,8 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
           setUserLocation(origin);
 
           const targetItem = generatePOILocation(origin, currentSteps, stepGoal);
-          setPoi({ lat: targetItem.lat, lng: targetItem.lng });
+          setPoi(targetItem);
+          setCollected(false);
 
           const streetCoords = await fetchStreetRoute(origin, {
             lat: targetItem.lat,
@@ -98,7 +157,28 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
 
         {poi && (
           <Marker position={[poi.lat, poi.lng]} icon={defaultIcon}>
-            <Popup>Collectible Target Item</Popup>
+            <Popup>
+              <strong>{poi.name}</strong>
+              <p>{poi.points} points</p>
+              {collected ? (
+                <p>Collected!</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={collectItem}
+                  disabled={collecting}
+                  style={{
+                    borderRadius: 6,
+                    background: "#8B5CF6",
+                    color: "white",
+                    cursor: collecting ? "wait" : "pointer",
+                    padding: "6px 10px",
+                  }}
+                >
+                  {collecting ? "Collecting..." : "Collect"}
+                </button>
+              )}
+            </Popup>
           </Marker>
         )}
 
