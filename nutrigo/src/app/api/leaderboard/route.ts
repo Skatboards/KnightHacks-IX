@@ -18,7 +18,7 @@ const demoPlayers = [
 function calculateScore(steps: number, collectiblePoints: number) {
   return collectiblePoints === 0
     ? steps
-    : (steps * collectiblePoints) / 100;
+    : (steps * collectiblePoints) / 10000;
 }
 
 export async function GET() {
@@ -36,7 +36,7 @@ export async function GET() {
   return NextResponse.json({
     demo: true,
     scoring:
-      "steps when collectible points are 0; otherwise (steps * total collectible points) / 100",
+      "steps when collectible points are 0; otherwise (steps * total collectible points) / 10000",
     leaderboard,
   });
 }

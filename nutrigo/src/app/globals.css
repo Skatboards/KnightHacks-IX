@@ -196,6 +196,32 @@ flex-direction: column;
   box-sizing: border-box;
 }
 
+.collectible-marker {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: flex;
+  font-size: 2rem;
+  justify-content: center;
+  line-height: 1;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.45));
+}
+
+@keyframes ar-target-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-8px) scale(1.05);
+  }
+}
+
+.ar-target-float {
+  animation: ar-target-float 2.2s ease-in-out infinite;
+}
+
 .circle-button-image {
   width: 70%; 
   height: 70%;  

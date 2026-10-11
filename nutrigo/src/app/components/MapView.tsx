@@ -25,6 +25,14 @@ const defaultIcon = L.icon({
   iconAnchor: [12, 41],
 });
 
+const collectibleIcon = L.divIcon({
+  className: "collectible-marker",
+  html: '<span aria-hidden="true">🍎</span>',
+  iconSize: [42, 42],
+  iconAnchor: [21, 21],
+  popupAnchor: [0, -21],
+});
+
 // Forces Leaflet to redraw tiles whenever the map pane changes
 function MapController() {
   const map = useMap();
@@ -40,6 +48,7 @@ function MapController() {
 interface MapViewProps {
   currentSteps: number;
   stepGoal: number;
+  onCollect: (points: number) => void;
 }
 
 type MapCollectible = POIItem & {
@@ -48,11 +57,16 @@ type MapCollectible = POIItem & {
   source: "step_path" | "hard_coded";
 };
 
-export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
+export default function MapView({
+  currentSteps,
+  stepGoal,
+  onCollect,
+}: MapViewProps) {
   const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
   const [pois, setPois] = useState<MapCollectible[]>([]);
   const [route, setRoute] = useState<[number, number][]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [collecting, setCollecting] = useState(false);
   const [collectedPoiIds, setCollectedPoiIds] = useState<string[]>([]);
 
@@ -82,6 +96,7 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
           }
 
           setCollectedPoiIds((current) => [...current, selectedPoi.poiId]);
+          onCollect(selectedPoi.points);
         } catch (error) {
           const message =
             error instanceof Error ? error.message : "Unable to collect this item";
@@ -103,106 +118,138 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          const origin: Coordinate = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserLocation(origin);
+          try {
+            const origin: Coordinate = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            setUserLocation(origin);
+            setLocationError(null);
 
-          const targetItem = generatePOILocation(origin, currentSteps, stepGoal);
+            const targetItem = generatePOILocation(origin, currentSteps, stepGoal);
 
-          const streetCoords = await fetchStreetRoute(origin, {
-            lat: targetItem.lat,
-            lng: targetItem.lng,
-          });
+            const streetCoords = await fetchStreetRoute(origin, {
+              lat: targetItem.lat,
+              lng: targetItem.lng,
+            });
 
-          const polylineCoords: [number, number][] = streetCoords.map((pt) => [
-            pt.lat,
-            pt.lng,
-          ]);
-          setRoute(polylineCoords);
+            const polylineCoords: [number, number][] = streetCoords.map((pt) => [
+              pt.lat,
+              pt.lng,
+            ]);
+            setRoute(polylineCoords);
 
-          const routeIndexes = [
-            Math.floor(streetCoords.length / 3),
-            Math.floor(streetCoords.length / 2),
-            Math.floor((streetCoords.length * 2) / 3),
-          ];
+            const routeIndexes = [
+              Math.floor(streetCoords.length / 3),
+              Math.floor(streetCoords.length / 2),
+              Math.floor((streetCoords.length * 2) / 3),
+            ];
 
-          const stepPathPois = await Promise.all(
-            routeIndexes.map(async (routeIndex, index) => {
-              const routePoint = streetCoords[routeIndex] ?? origin;
-              const poiResponse = await fetch("/api/pois", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  latitude: routePoint.lat,
-                  longitude: routePoint.lng,
-                  name: `Step Path Collectible ${index + 1}`,
-                }),
-              });
+            const stepPathPois = await Promise.all(
+              routeIndexes.map(async (routeIndex, index) => {
+                const routePoint = streetCoords[routeIndex] ?? origin;
+                const poiResponse = await fetch("/api/pois", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    latitude: routePoint.lat,
+                    longitude: routePoint.lng,
+                    name: `Step Path Collectible ${index + 1}`,
+                  }),
+                });
 
-              if (!poiResponse.ok) {
-                const error = (await poiResponse.json()) as { error?: string };
-                throw new Error(error.error ?? "Unable to create a route collectible");
-              }
+                if (!poiResponse.ok) {
+                  const error = (await poiResponse.json()) as { error?: string };
+                  throw new Error(error.error ?? "Unable to create a route collectible");
+                }
 
-              const savedPoi = (await poiResponse.json()) as {
-                poiId: string;
-                collectibleTypeId: string;
-                name: string;
-                points: number;
-              };
+                const savedPoi = (await poiResponse.json()) as {
+                  poiId: string;
+                  collectibleTypeId: string;
+                  name: string;
+                  points: number;
+                };
 
-              return {
-                name: savedPoi.name,
-                points: savedPoi.points,
-                lat: routePoint.lat,
-                lng: routePoint.lng,
-                poiId: savedPoi.poiId,
-                collectibleTypeId: savedPoi.collectibleTypeId,
-                source: "step_path" as const,
-              };
-            })
-          );
+                return {
+                  name: savedPoi.name,
+                  points: savedPoi.points,
+                  lat: routePoint.lat,
+                  lng: routePoint.lng,
+                  poiId: savedPoi.poiId,
+                  collectibleTypeId: savedPoi.collectibleTypeId,
+                  source: "step_path" as const,
+                };
+              })
+            );
 
-          const fixedPoiResponse = await fetch("/api/pois");
-          if (!fixedPoiResponse.ok) {
-            const error = (await fixedPoiResponse.json()) as { error?: string };
-            throw new Error(error.error ?? "Unable to load fixed collectibles");
+            const fixedPoiResponse = await fetch("/api/pois");
+            if (!fixedPoiResponse.ok) {
+              const error = (await fixedPoiResponse.json()) as { error?: string };
+              throw new Error(error.error ?? "Unable to load fixed collectibles");
+            }
+
+            const fixedPoiData = (await fixedPoiResponse.json()) as {
+              pois: Array<
+                Omit<MapCollectible, "lat" | "lng"> & {
+                  latitude: number;
+                  longitude: number;
+                }
+              >;
+            };
+
+            setPois([
+              ...stepPathPois,
+              ...fixedPoiData.pois.map((fixedPoi) => ({
+                ...fixedPoi,
+                lat: fixedPoi.latitude,
+                lng: fixedPoi.longitude,
+              })),
+            ]);
+            setCollectedPoiIds([]);
+          } catch (error) {
+            console.error("Map loading failed:", error);
+            setLocationError(
+              error instanceof Error
+                ? error.message
+                : "Unable to load the map and collectibles."
+            );
+          } finally {
+            setLoading(false);
           }
-
-          const fixedPoiData = (await fixedPoiResponse.json()) as {
-            pois: Array<
-              Omit<MapCollectible, "lat" | "lng"> & {
-                latitude: number;
-                longitude: number;
-              }
-            >;
-          };
-
-          setPois([
-            ...stepPathPois,
-            ...fixedPoiData.pois.map((fixedPoi) => ({
-              ...fixedPoi,
-              lat: fixedPoi.latitude,
-              lng: fixedPoi.longitude,
-            })),
-          ]);
-          setCollectedPoiIds([]);
-          setLoading(false);
         },
         (error) => {
           console.error("Geolocation error:", error);
+          setLocationError(
+            error.code === error.PERMISSION_DENIED
+              ? "Location permission was denied. Allow location access and try again."
+              : "Location could not be found. Check your browser location settings and try again."
+          );
           setLoading(false);
-        }
+        },
+        { enableHighAccuracy: true, maximumAge: 10_000, timeout: 10_000 }
       );
     }
   }, [currentSteps, stepGoal]);
 
-  if (loading || !userLocation) {
+  if (loading) {
     return (
       <div className="h-[450px] w-full bg-gray-800 rounded-xl flex items-center justify-center text-gray-300 border border-gray-700">
         Acquiring current GPS location and generating path...
+      </div>
+    );
+  }
+
+  if (!userLocation || locationError) {
+    return (
+      <div className="flex h-[450px] w-full flex-col items-center justify-center gap-3 rounded-xl border border-gray-700 bg-gray-800 p-6 text-center text-gray-300">
+        <p>{locationError ?? "Location is required to load the map."}</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -227,7 +274,11 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
         </Marker>
 
         {pois.map((poi) => (
-          <Marker key={poi.poiId} position={[poi.lat, poi.lng]} icon={defaultIcon}>
+          <Marker
+            key={poi.poiId}
+            position={[poi.lat, poi.lng]}
+            icon={collectibleIcon}
+          >
             <Popup>
               <strong>{poi.name}</strong>
               <p>
