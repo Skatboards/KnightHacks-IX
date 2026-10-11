@@ -1,3 +1,5 @@
+import { appendFile, mkdir } from "node:fs/promises";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { getDbPool, type DbQuery } from "@/lib/db/client";
 import { mapUsdaCategory, type FoodCategory } from "@/lib/usda/category";
 
@@ -52,6 +54,48 @@ type ImportedFood = {
     nutritionData: NutritionData;
     metadata: Record<string, number | string | null>;
 };
+
+class UsdaApiError extends Error {
+    constructor(
+        readonly status: number,
+        readonly responseBody: string
+    ) {
+        super(`USDA API request failed with status ${status}.`);
+        this.name = "UsdaApiError";
+    }
+}
+
+function getErrorLogPath() {
+    const configuredPath = process.env.USDA_IMPORT_ERROR_LOG_PATH?.trim();
+    const logPath = configuredPath || "logs/usda-import-errors.log";
+
+    return isAbsolute(logPath) ? logPath : resolve(process.cwd(), logPath);
+}
+
+async function logImportError(fdcId: number, error: unknown) {
+    const errorMessage =
+        error instanceof Error ? error.message : "Import failed.";
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        fdcId,
+        externalId: `usda:fdc:${fdcId}`,
+        error: errorMessage,
+        ...(error instanceof UsdaApiError
+            ? {
+                  upstreamStatus: error.status,
+                  upstreamResponse: error.responseBody || null,
+              }
+            : {}),
+    };
+
+    try {
+        const logPath = getErrorLogPath();
+        await mkdir(dirname(logPath), { recursive: true });
+        await appendFile(logPath, `${JSON.stringify(logEntry)}\n`, "utf8");
+    } catch (loggingError) {
+        console.error("Unable to write USDA import error log:", loggingError);
+    }
+}
 
 export type ImportStatus = "created" | "updated" | "failed";
 
@@ -205,7 +249,8 @@ async function fetchUsdaBatch(fdcIds: number[]) {
     });
 
     if (!response.ok) {
-        throw new Error(`USDA API request failed with status ${response.status}.`);
+        const responseBody = (await response.text()).slice(0, 8_000);
+        throw new UsdaApiError(response.status, responseBody);
     }
 
     const data: unknown = await response.json();
@@ -295,6 +340,7 @@ export async function importUsdaFoods(
                     status: "failed",
                     error: message,
                 });
+                await logImportError(fdcId, error);
             }
 
             continue;
@@ -307,12 +353,14 @@ export async function importUsdaFoods(
             const externalId = `usda:fdc:${fdcId}`;
 
             if (!food) {
+                const error = new Error("USDA food was not found.");
                 results.set(fdcId, {
                     fdcId,
                     externalId,
                     status: "failed",
-                    error: "USDA food was not found.",
+                    error: error.message,
                 });
+                await logImportError(fdcId, error);
                 continue;
             }
 
@@ -333,6 +381,7 @@ export async function importUsdaFoods(
                     status: "failed",
                     error: error instanceof Error ? error.message : "Import failed.",
                 });
+                await logImportError(fdcId, error);
             }
         }
     }

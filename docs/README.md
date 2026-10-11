@@ -84,6 +84,12 @@ and starts the services again. For a non-interactive reset, run:
 npm run db:reset -- --yes
 ```
 
+After the schema is recreated, the reset also applies
+[`scripts/seed-dev-db.sql`](../scripts/seed-dev-db.sql). This creates a local
+development user, sample food types, POIs, appearances, owned collectibles,
+and acquisition events. Set `NUTRIGO_USER_ID` to
+`11111111-1111-4111-8111-111111111111` in `.env.local` to use the seeded user.
+
 The API reference is available in the repository's
 [`docs/API.md`](../docs/API.md) file.
 
@@ -107,6 +113,7 @@ running it:
 DATABASE_URL=postgresql://...
 USDA_API_KEY=...
 USDA_IMPORT_ADMIN_TOKEN=...
+USDA_IMPORT_ERROR_LOG_PATH=logs/usda-import-errors.log
 ```
 
 Run an import for one or more FoodData Central IDs:
@@ -119,6 +126,10 @@ The temporary admin endpoint accepts the same IDs at
 `POST /api/admin/usda/import` with an `Authorization: Bearer` header. Imported
 records use `usda:fdc:<fdcId>` as `external_id`, default rarity to `none`, and
 map USDA categories to the application taxonomy with `Other` as the fallback.
+Failed imports are appended as JSON lines to the configured server-side log
+file. The default location is `nutrigo/logs/usda-import-errors.log`; the log
+directory is ignored by git. Non-success USDA responses include the upstream
+HTTP status and a truncated response body in the log.
 
 ## Learn More
 

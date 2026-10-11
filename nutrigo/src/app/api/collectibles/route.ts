@@ -4,8 +4,6 @@ import {
     type OwnedCollectiblesCursor,
 } from "@/lib/db/owned-collectibles";
 
-export const runtime = "nodejs";
-
 const DEFAULT_BATCH_SIZE = 25;
 const MAX_BATCH_SIZE = 100;
 const UUID_PATTERN =

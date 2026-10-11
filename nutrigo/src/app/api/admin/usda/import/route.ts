@@ -2,8 +2,6 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { importUsdaFoods } from "@/lib/usda/importer";
 
-export const runtime = "nodejs";
-
 function hasValidBearerToken(request: Request) {
     const configuredToken = process.env.USDA_IMPORT_ADMIN_TOKEN;
     const authorization = request.headers.get("authorization");

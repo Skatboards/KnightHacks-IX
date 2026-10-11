@@ -6,6 +6,7 @@ project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 compose_file="$project_root/compose.yaml"
 compose_project="nutrigo"
 database_volume="${compose_project}_nutrigo-pgdata"
+seed_file="$project_root/scripts/seed-dev-db.sql"
 
 if docker compose version >/dev/null 2>&1; then
   compose=(docker compose)
@@ -34,4 +35,23 @@ fi
 docker volume rm "$database_volume" >/dev/null 2>&1 || true
 "${compose[@]}" -p "$compose_project" -f "$compose_file" up -d --build
 
-echo "Database reset complete. The migration will run against the new volume."
+database_ready=false
+for attempt in {1..30}; do
+  if "${compose[@]}" -p "$compose_project" -f "$compose_file" exec -T db \
+    pg_isready -U nutrigo -d nutrigo >/dev/null 2>&1; then
+    database_ready=true
+    break
+  fi
+
+  sleep 1
+done
+
+if [[ "$database_ready" != true ]]; then
+  echo "Database did not become ready within 30 seconds." >&2
+  exit 1
+fi
+
+"${compose[@]}" -p "$compose_project" -f "$compose_file" exec -T db \
+  psql -v ON_ERROR_STOP=1 -U nutrigo -d nutrigo < "$seed_file"
+
+echo "Database reset and development seed complete."

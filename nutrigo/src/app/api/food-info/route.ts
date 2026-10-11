@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { findFoodTypes } from "@/lib/db/food-types";
 
-export const runtime = "nodejs";
-
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const foodName = searchParams.get("food")?.trim();
