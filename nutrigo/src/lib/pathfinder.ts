@@ -5,26 +5,29 @@ export interface Coordinate {
   lng: number;
 }
 
-export interface POIItem {
+export interface POIItem extends Coordinate {
   name: string;
   points: number;
-  lat: number;
-  lng: number;
 }
 
-// Calculates one-way distance for a round trip (Total steps remaining / 2)
-export function getRemainingMeters(currentSteps: number, stepGoal: number): number {
+export function getRemainingMeters(
+  currentSteps: number,
+  stepGoal: number
+): number {
   const stepsLeft = Math.max(0, stepGoal - currentSteps);
-  const totalMeters = stepsLeft * 0.6; // Adjusted step scaling factor
-  return totalMeters / 2; // Half distance out, half distance back
+  const totalMeters = stepsLeft * 0.6;
+
+  return totalMeters / 2;
 }
 
-// Generate turnaround POI location
-export function generatePOILocation(origin: Coordinate, currentSteps: number, stepGoal: number): POIItem {
+export function generatePOILocation(
+  origin: Coordinate,
+  currentSteps: number,
+  stepGoal: number
+): POIItem {
   const distanceMeters = getRemainingMeters(currentSteps, stepGoal);
 
-  // Offset latitude for the turnaround point
-  const targetLat = origin.lat + (distanceMeters / 111000);
+  const targetLat = origin.lat + distanceMeters / 111000;
   const targetLng = origin.lng + 0.001;
 
   return {
@@ -35,23 +38,39 @@ export function generatePOILocation(origin: Coordinate, currentSteps: number, st
   };
 }
 
-// Fetch round-trip sidewalk route: Origin -> Destination -> Origin
-export function fetchStreetRoute(origin: Coordinate, destination: Coordinate): Promise<Coordinate[]> {
-  // Adding the final origin coordinate creates a complete round-trip loop in OSRM
-  const url = `https://router.project-osrm.org/route/v1/foot/${origin.lng},${origin.lat};${destination.lng},${destination.lat};${origin.lng},${origin.lat}?overview=full&geometries=geojson`;
+export function fetchStreetRoute(
+  origin: Coordinate,
+  destination: Coordinate
+): Promise<Coordinate[]> {
+  const url =
+    `https://router.project-osrm.org/route/v1/foot/` +
+    `${origin.lng},${origin.lat};` +
+    `${destination.lng},${destination.lat};` +
+    `${origin.lng},${origin.lat}` +
+    `?overview=full&geometries=geojson`;
 
   return fetch(url)
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Route request failed: ${response.status}`);
+      }
+
+      return response.json();
+    })
     .then((data) => {
       if (!data.routes || data.routes.length === 0) {
-        return [origin, destination, origin]; // Fallback loop
+        return [origin, destination, origin];
       }
-      return data.routes[0].geometry.coordinates.map((coord: [number, number]) => ({
-        lat: coord[1],
-        lng: coord[0],
-      }));
+
+      return data.routes[0].geometry.coordinates.map(
+        (coordinate: [number, number]) => ({
+          lat: coordinate[1],
+          lng: coordinate[0],
+        })
+      );
     })
-    .catch(() => {
+    .catch((error) => {
+      console.error("Unable to fetch walking route:", error);
       return [origin, destination, origin];
     });
 }
