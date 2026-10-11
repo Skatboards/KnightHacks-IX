@@ -17,8 +17,7 @@ npm install
 ```
 
 This installs Next.js, React, React DOM, Leaflet, React Leaflet, TypeScript,
-Tailwind CSS, ESLint, and the related type definitions. No additional
-packages are required.
+Tailwind CSS, ESLint, the PostgreSQL client, and the related type definitions.
 
 ### Run locally
 
@@ -42,6 +41,29 @@ npm run build
 ```
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## USDA food imports
+
+The USDA importer writes full FoodData Central records into PostgreSQL as food
+collectible types. Configure these server-only environment variables before
+running it:
+
+```text
+DATABASE_URL=postgresql://...
+USDA_API_KEY=...
+USDA_IMPORT_ADMIN_TOKEN=...
+```
+
+Run an import for one or more FoodData Central IDs:
+
+```bash
+npm run import:usda -- --fdc-id 747448 --fdc-id 170379
+```
+
+The temporary admin endpoint accepts the same IDs at
+`POST /api/admin/usda/import` with an `Authorization: Bearer` header. Imported
+records use `usda:fdc:<fdcId>` as `external_id`, default rarity to `none`, and
+map USDA categories to the application taxonomy with `Other` as the fallback.
 
 ## Learn More
 

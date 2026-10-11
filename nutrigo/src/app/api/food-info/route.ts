@@ -1,69 +1,66 @@
 import { NextResponse } from "next/server";
+import { findFoodTypes } from "@/lib/db/food-types";
+
+export const runtime = "nodejs";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const foodName = searchParams.get("food");
+    const foodName = searchParams.get("food")?.trim();
+    const externalId = searchParams.get("external_id")?.trim();
 
-    if (!foodName) {
+    if (!foodName && !externalId) {
         return NextResponse.json(
-            { error: "Please provide a food name." },
+            { error: "Please provide a food name or external_id." },
             { status: 400 }
         );
     }
 
-    const apiKey = process.env.USDA_API_KEY;
-
-    if (!apiKey) {
-        return NextResponse.json(
-            { error: "USDA API key is not configured." },
-            { status: 500 }
-        );
-    }
-
-    const url = new URL(
-        "https://api.nal.usda.gov/fdc/v1/foods/search"
-    );
-
-    url.searchParams.set("api_key", apiKey);
-    url.searchParams.set("query", foodName);
-    url.searchParams.set("pageSize", "10");
-    url.searchParams.set("dataType", "Foundation");
-
     try {
-        const response = await fetch(url);
+        const foods = await findFoodTypes({
+            externalId: externalId || undefined,
+            name: externalId ? undefined : foodName || undefined,
+        });
 
-        if (!response.ok) {
+        if (foods.length === 0) {
             return NextResponse.json(
-                { error: "USDA API request failed." },
-                { status: 502 }
-            );
-        }
-
-        const data = await response.json();
-        const food = data.foods?.[0];
-
-        if (!food) {
-            return NextResponse.json(
-                { error: "Food not found." },
+                { error: "Food collectible not found." },
                 { status: 404 }
             );
         }
 
-        const energy = food.foodNutrients?.find(
-            (n: { nutrientName: string; unitName: string }) =>
-                n.nutrientName === "Energy" &&
-                n.unitName?.toLowerCase() === "kcal"
-        );
+        if (!externalId && foods.length > 1) {
+            return NextResponse.json(
+                {
+                    error: "Food name is ambiguous; use external_id.",
+                    matches: foods.map((food) => ({
+                        id: food.id,
+                        external_id: food.external_id,
+                        food: food.name,
+                    })),
+                },
+                { status: 409 }
+            );
+        }
+
+        const food = foods[0];
+        const nutritionData = food.nutrition_data;
 
         return NextResponse.json({
-            food: food.description,
-            calories: energy?.value ?? null,
-            unit: energy?.unitName ?? null
+            id: food.id,
+            external_id: food.external_id,
+            food: food.name,
+            category: food.category,
+            rarity: food.rarity,
+            calories: nutritionData.calories ?? null,
+            serving_amount: nutritionData.serving_amount ?? null,
+            serving_unit: nutritionData.serving_unit ?? null,
+            nutrition_data: nutritionData,
         });
-    } catch {
+    } catch (error) {
+        console.error("Food database lookup failed:", error);
         return NextResponse.json(
-            { error: "Failed to retrieve food data." },
-            { status: 500 }
+            { error: "Food database is unavailable." },
+            { status: 503 }
         );
     }
 }
