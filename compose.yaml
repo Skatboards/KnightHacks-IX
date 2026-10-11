@@ -1,0 +1,40 @@
+version: "2.4"
+
+services:
+  db:
+    image: postgis/postgis:18-3.6
+    environment:
+      POSTGRES_DB: nutrigo
+      POSTGRES_USER: nutrigo
+      POSTGRES_PASSWORD: nutrigo_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - nutrigo-pgdata:/var/lib/postgresql
+      - ./nutrigo/src/lib/db/migrations/0001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nutrigo -d nutrigo"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build:
+      context: ./nutrigo
+    environment:
+      DATABASE_URL: postgresql://nutrigo:nutrigo_dev_password@db:5432/nutrigo
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - ./nutrigo:/app
+      - nutrigo-node-modules:/app/node_modules
+      - nutrigo-next:/app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev -- --hostname 0.0.0.0
+
+volumes:
+  nutrigo-pgdata:
+  nutrigo-node-modules:
+  nutrigo-next:

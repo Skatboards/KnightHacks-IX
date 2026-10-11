@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import:usda": "tsx scripts/import-usda.ts",
+    "db:reset": "bash ../scripts/reset-db.sh"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -27,6 +29,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "tsx": "^4.23.15",
     "tailwindcss": "^4.3.3",
     "typescript": "^5"
   }

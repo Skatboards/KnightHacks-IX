@@ -1,2 +1,10 @@
 # planning
 *.md
+
+# app-related docs
+!docs/
+!docs/**
+
+# api testing
+bruno/
+bruno/**
