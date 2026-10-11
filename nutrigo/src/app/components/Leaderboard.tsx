@@ -77,15 +77,12 @@ export default function Leaderboard({ currentSteps }: LeaderboardProps) {
     <section className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-800 p-5 text-white">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-purple-300">Leaderboard</h2>
-          <p className="text-xs text-gray-400">
+          <p className="text-sm text-gray-400">
             Score: steps when no collectibles; otherwise (steps × collectible
             points) ÷ 10,000
           </p>
         </div>
-        <span className="rounded-full bg-purple-500/20 px-3 py-1 text-xs text-purple-200">
-          Demo
-        </span>
+        
       </div>
 
       {loading ? (

@@ -1,29 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=B612+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "tailwindcss";
 
 
+
+@theme {
+  --color-some-purple: #D5BEE2;
+  --color-lightish-pink: #F2DBF5;
+  --color-purplish: #9E9BD8;  
+  --color-off-blue: #D8E9F1; 
+}
+
+.b612-mono-regular {
+  font-family: "B612 Mono", monospace;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.b612-mono-bold {
+  font-family: "B612 Mono", monospace;
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+/*Map Page*/
+/* Top Steps Indicator Pill */
+.Steps-Pill {
+  border: 4px solid white;
+  background-color: #C8BAF1;
+  border-radius: 50px;
+   width: 88%;
+  max-width:  600px;
+  height: 4.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 24px;
+  color: whitesmoke;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+   border: 3px solid white;
+  outline: 2px solid #C8BAF1;
+  outline-offset: 6px; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);  
+  border: 6px solid white;   
+    outline: 4px solid #ffffff ; 
+  outline-offset: -15px;    
+}
+
+/* Bottom Navigation Buttons (Dex & Profile) */
+.Map-Buttons {
+  border: 4px solid white;
+  background-color: #C8BAF1;
+  border-radius: 50px;
+  width: 34%;  
+  height: 6rem; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 30px;    
+  color: whitesmoke;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  /* Double accent border using outline and border */
+  border: 6px solid white;
+  outline: 6px solid #ffffff; 
+  outline-offset: -18px;     
+   
+  
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);  
+}
+
+/* Middle Circle Button */
+.Center-Circle-Button {
+  border: 4px solid white;
+  background-color: #a0e5eb; /* Soft teal matching the prototype */
+  border-radius: 50%;
+  width: 8rem;
+  height: 8rem; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  cursor: pointer; 
+  /* Double accent border matching the others */
+  border: 6px solid white;
+  outline: 2px solid #b0d0d3;
+
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.leaderboard-button{
+  display: inline-block; 
+  border: 5px solid white;
+  background-color: #82efed; /* Soft teal matching the prototype */
+  border-radius: 50%;
+  width: 4.5rem;   
+  height: 4.5rem; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+
+
+/*Profile page*/
+.Meter-box{
+  border: 4px solid white;
+  background-color: #C4D0F4;
+  border-radius: 30px; 
+  height: auto;
+  width: 425px; 
+  display: grid;
+  grid-template-columns: 225px repeat(5, 1fr);
+  grid-template-rows: 3fr repeat(2 , 1fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+  box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.25);
+
+  border: 6px solid white;   
+    outline: 4px solid #ffffff ; 
+  outline-offset: -15px;   
+}
+
+
+
+.Step-meter-div{ grid-area: 1 / 1 / 2 / 2;
+display: flex;
+flex-direction: column;
+  justify-content: center;
+  align-items: center;}
+
+.Cal-meter-div{grid-area: 1 / 2 / 2 / 3;
+display: flex;
+flex-direction: column;
+
+  justify-content: center;
+  align-items: center;}
+.Step-div{grid-area: 2 / 1 / 3 / 3; margin-top: 30px;}
+.Cal-div{grid-area: 3 / 1 / 3 / 3;}
+
+
+.Calendar-box{
+  border: 3px solid white;
+  background-color: #FBDDF5;
+  border-radius: 20px;
+  height: 200px;
+  width: 425px;
+  box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.25);
+  border: 6px solid white;   
+    outline: 4px solid #ffffff ; 
+  outline-offset: -15px;   
+}
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.Food-box{
+  border: 3px solid white;
+  background-color: #AAA2D9;
+  height: 65px;  
+  width: 425px;
+  border-radius: 40px;
+  padding-left: 20px;
+  margin-top: 5px; 
+  box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.25);
+  border: 6px solid white;   
+    outline: 2.5px solid #ffffff ; 
+  outline-offset: -14px;   
+
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.Food-box-text{
+  margin-top: 1px; 
+  display: flex;
+  flex-direction: row;
+  align-items: center;     /* Centers text vertically */
+  font-size: 24px;   
+  padding-left: 10px;
+  
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.circle-button {
+  border-radius: 50%;
+  background-color: #8578d3; /* Default color if none provided */
+  height: 2.5pc;  
+  width: 2.5pc;
+  border: 3px solid white;
+  display: flex; 
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden; /* Ensures images stay inside the circle */
+  box-sizing: border-box;
 }
 
 .collectible-marker {
@@ -50,4 +220,130 @@ body {
 
 .ar-target-float {
   animation: ar-target-float 2.2s ease-in-out infinite;
+}
+
+.circle-button-image {
+  width: 70%; 
+  height: 70%;  
+  object-fit: cover; /* Ensures the image covers the circle nicely */
+}
+
+.white-outline{
+  -webkit-text-stroke: 2px white;
+  paint-order: stroke fill;
+
+
+}
+
+.leave-profile{
+  display: inline-block; 
+  border: 5px solid white;
+  background-color: #b790c8;  
+  border-radius: 50%;
+  width: 4rem;     
+  height: 4rem; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.leave-profile-image{
+  width: 50%; 
+  height: 50%;  
+  object-fit: cover;
+}
+
+/*Circle meter*/
+.circle-bar-outer {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%; 
+  background: #e2e8f0; /* Track color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle-bar-inner {
+  width: 125px; 
+  height: 125px; 
+  border-radius: 50%;  
+  background: #C4D0F4; /* Inner background color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/*Sign Up pages*/
+ 
+input{
+  border: 2px solid #b9b9b9; 
+  border-radius: 20px; 
+  background-color: aliceblue;
+  height:55px;  
+}
+
+select{ 
+
+  border: 2px solid #b9b9b9; 
+  border-radius: 15px;
+  background-color: aliceblue;
+  height: 55px;
+ 
+}
+
+.submit-button {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Centers text vertically */
+  text-align: center;
+  color: #e2e8f0; 
+  border: 2px solid #b9b9b9; 
+  border-radius: 20px; 
+  background-color: rgb(169, 71, 169);    
+  height: 55px; 
+  width: 50%; 
+} 
+
+.button-group {
+  display: flex;
+  gap: 12px; /* space between buttons */
+}
+
+.select-button {
+  border: 2px solid #b9b9b9; 
+  border-radius: 20px; 
+  background-color: aliceblue;
+  height: 100px;    
+  padding: 0 24px;          /* gives text breathing room inside the pill */
+  font-size: 30px;             /* scales text nicely */
+  cursor: pointer;
+  display: inline-flex;     /* centers text vertically and horizontally */
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* Hover effect */
+.select-button:hover {
+  background-color: #d4e7fb; /* slightly deeper tint on hover */
+  border-color: #888;
+}
+
+/* Selected state styling */
+.select-button.selected {
+  background-color: #9d2597;
+  color: #ffffff;
+  border-color: #4e0650;  
+}
+
+.signupheading{ 
+  margin-top: 20px; 
+  font-size: 50px; 
+}
+
+.Search-input{
+  border: 2px solid #b9b9b9; 
+  border-radius: 20px; 
+  background-color: aliceblue;
+  height: 40px;     
 }
