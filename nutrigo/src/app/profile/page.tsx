@@ -4,6 +4,64 @@ import Circlebutton from "../../../Components/Circlebutton";
 
 import React, { useState } from 'react';
 
+interface CircularMeterProps {
+  value: number;
+  max: number;
+  label: string;
+}
+
+export function CircularMeter({ value, max, label }: CircularMeterProps) {
+  const radius = 45;
+  const circumference = 2 * Math.PI * radius;
+  const ratio = max > 0 ? value / max : 0;
+  const percent = Math.min(Math.max(ratio * 100, 0), 100);
+  const strokeDashoffset = circumference - (percent / 100) * circumference;
+
+  return (
+    <div
+      className="relative w-[120px] h-[120px] flex items-center justify-center"
+      role="meter"
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={max}
+      aria-label={label}
+    >
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+        {/* Background track */}
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          className="text-slate-200"
+          strokeWidth="8"
+          stroke="currentColor"
+          fill="transparent"
+        />
+        {/* Progress */}
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          className="text-blue-500 transition-all duration-500 ease-out"
+          strokeWidth="8"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          stroke="currentColor"
+          fill="transparent"
+        />
+      </svg>
+
+      <div className="absolute flex flex-col items-center justify-center text-center">
+        <p className="text-lg font-semibold leading-tight text-slate-900">{value}</p>
+        <p className="text-xs font-normal text-slate-500">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+
+
 // Helper to get the Monday of the current week
 function getMonday(d: Date) {
   const date = new Date(d);
@@ -51,38 +109,24 @@ export default function profile() {
   return (
     <div className="bg-some-purple">
       <div className="flex flex-col items-center">
-        <div className="Meter-box mt-10 p-2.5">
-          {/*place the meter for steps and Calories here*/}
-    {/* Step Meter with Text Inside */}
-  <div className="Step-meter-div b612-mono-bold text-[27px] text-shadow-md">
-    <div className="circle-bar-outer flex items-center justify-center relative">
-      <div className="circle-bar-inner flex flex-col items-center justify-center">
-        <p className="white-outline leading-tight">1000</p>
-        <p className="text-[18px]">Steps</p>
+        <div className="Meter-box mt-10 p-2.5 flex flex-wrap gap-6 items-center">
+      <div className="Step-meter-div b612-mono-bold text-[20px] text-shadow-md white-outline">
+        <CircularMeter value={1000} max={5000} label="Steps" />
       </div>
-    </div>
-  </div>
-          {/* Calorie Meter */}
-  <div className="Cal-meter-div b612-mono-bold text-[27px] text-shadow-md relative flex flex-col items-center justify-center">
-    <div className="circle-bar-outer relative flex items-center justify-center relative">
-      <div className="circle-bar-inner flex items-center justify-center">
-        <div className="absolute flex flex-col items-center">
-          <p className="white-outline leading-tight">1000</p>
-          <p className="text-[18px]">Calories</p>
-        </div>
+      
+      <div className="Cal-meter-div b612-mono-bold text-[20px] text-shadow-md white-outline">
+        <CircularMeter value={450} max={600} label="Calories" />
       </div>
-    </div>
-  </div>
 
-  <div className="Step-div flex justify-between px-3">
-    <p className="b612-mono-bold text-[18px]">Average Steps this week:</p>
+      <div className="Step-div flex justify-between px-3">
+    <p className="b612-mono-bold text-[16px]">Average Steps this week:</p>
      <p className="b612-mono-bold white-outline text-[27px] -mt-3">2131</p>
   </div>
   <div className="Cal-div flex justify-between px-3">
-    <p className="b612-mono-bold text-[18px]">Average Calories this week:</p>
+    <p className="b612-mono-bold text-[16px]">Average Calories this week:</p>
     <p className="b612-mono-bold white-outline text-[27px] -mt-3">1790</p>
-  </div>
-</div>
+      </div>
+    </div>
 {/*Calendar */}
         <div className="Calendar-box mt-10 p-3 flex flex-col justify-between">
       {/* Header: Month Year & Buttons */}
