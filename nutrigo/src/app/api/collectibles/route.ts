@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import type { PoolClient } from "pg";
 import { db } from "@/lib/db";
 
 type CollectibleRequest = {
+  poiId: string;
+  collectibleTypeId: string;
   latitude: number;
   longitude: number;
-  targetLatitude: number;
-  targetLongitude: number;
 };
 
 const MAX_COLLECTION_DISTANCE_METERS = 100;
@@ -35,67 +34,6 @@ function distanceInMeters(
   return 2 * earthRadiusMeters * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-async function findOrCreateCollectibleType(client: PoolClient) {
-  const result = await client.query<{ id: string }>(
-    `
-      SELECT id
-      FROM food_collectible_types
-      WHERE name = 'Golden Apple'
-        AND is_active = TRUE
-      ORDER BY created_at
-      LIMIT 1
-    `
-  );
-
-  if (result.rows[0]) {
-    return result.rows[0].id;
-  }
-
-  const created = await client.query<{ id: string }>(
-    `
-      INSERT INTO food_collectible_types (
-        name,
-        description,
-        category,
-        rarity,
-        nutrition_data
-      )
-      VALUES (
-        'Golden Apple',
-        'A collectible earned by completing a walking route.',
-        'fruit',
-        'common',
-        '{"calories": 95, "serving_unit": "piece"}'::jsonb
-      )
-      RETURNING id
-    `
-  );
-
-  return created.rows[0].id;
-}
-
-async function createPoi(
-  client: PoolClient,
-  latitude: number,
-  longitude: number
-) {
-  const result = await client.query<{ id: string }>(
-    `
-      INSERT INTO pois (name, poi_type, description, location)
-      VALUES (
-        'Golden Apple',
-        'food_collectible',
-        'A Golden Apple walking collectible.',
-        ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
-      )
-      RETURNING id
-    `,
-    [longitude, latitude]
-  );
-
-  return result.rows[0].id;
-}
-
 export async function POST(request: Request) {
   let body: CollectibleRequest;
 
@@ -105,31 +43,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const coordinates = [
-    body.latitude,
-    body.longitude,
-    body.targetLatitude,
-    body.targetLongitude,
-  ];
-
-  if (!coordinates.every(isCoordinate)) {
-    return NextResponse.json(
-      { error: "Valid current and target coordinates are required" },
-      { status: 400 }
-    );
-  }
-
-  const distance = distanceInMeters(
-    body.latitude,
-    body.longitude,
-    body.targetLatitude,
-    body.targetLongitude
-  );
-
-  if (distance > MAX_COLLECTION_DISTANCE_METERS) {
+  if (
+    !body.poiId ||
+    !body.collectibleTypeId ||
+    !isCoordinate(body.latitude) ||
+    !isCoordinate(body.longitude)
+  ) {
     return NextResponse.json(
       {
-        error: `Move within ${MAX_COLLECTION_DISTANCE_METERS} meters to collect this item.`,
+        error:
+          "poiId, collectibleTypeId, latitude, and longitude are required",
       },
       { status: 400 }
     );
@@ -162,23 +85,71 @@ export async function POST(request: Request) {
       throw new Error("Configured Nutrigo user was not found");
     }
 
-    const collectibleTypeId = await findOrCreateCollectibleType(client);
-    const poiId = await createPoi(
-      client,
-      body.targetLatitude,
-      body.targetLongitude
+    const poiResult = await client.query<{
+      latitude: number;
+      longitude: number;
+      source: "step_path" | "hard_coded" | null;
+      points: number;
+      name: string;
+    }>(
+      `
+        SELECT
+          ST_Y(location::geometry) AS latitude,
+          ST_X(location::geometry) AS longitude,
+          metadata->>'source' AS source,
+          COALESCE((metadata->>'points')::integer, 150) AS points,
+          name
+        FROM pois
+        WHERE id = $1
+          AND is_active = TRUE
+      `,
+      [body.poiId]
     );
 
-    await client.query(
+    const poi = poiResult.rows[0];
+    if (!poi) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ error: "POI was not found" }, { status: 404 });
+    }
+
+    const appearanceResult = await client.query(
       `
-        INSERT INTO food_collectible_appearances (
-          poi_id,
-          food_collectible_type_id
-        )
-        VALUES ($1, $2)
+        SELECT id
+        FROM food_collectible_appearances
+        WHERE poi_id = $1
+          AND food_collectible_type_id = $2
+          AND is_active = TRUE
+          AND (available_from IS NULL OR available_from <= now())
+          AND (available_until IS NULL OR available_until >= now())
+        LIMIT 1
       `,
-      [poiId, collectibleTypeId]
+      [body.poiId, body.collectibleTypeId]
     );
+
+    if (!appearanceResult.rows[0]) {
+      await client.query("ROLLBACK");
+      return NextResponse.json(
+        { error: "This collectible is not available at this POI" },
+        { status: 409 }
+      );
+    }
+
+    const distance = distanceInMeters(
+      body.latitude,
+      body.longitude,
+      poi.latitude,
+      poi.longitude
+    );
+
+    if (distance > MAX_COLLECTION_DISTANCE_METERS) {
+      await client.query("ROLLBACK");
+      return NextResponse.json(
+        {
+          error: `Move within ${MAX_COLLECTION_DISTANCE_METERS} meters to collect this item.`,
+        },
+        { status: 400 }
+      );
+    }
 
     const collectibleResult = await client.query<{
       id: string;
@@ -193,7 +164,7 @@ export async function POST(request: Request) {
         VALUES ($1, $2, $3)
         RETURNING id, acquired_at
       `,
-      [userId, collectibleTypeId, poiId]
+      [userId, body.collectibleTypeId, body.poiId]
     );
 
     const collectible = collectibleResult.rows[0];
@@ -209,7 +180,7 @@ export async function POST(request: Request) {
         )
         VALUES ($1, $2, $2, 'acquired', $3)
       `,
-      [collectible.id, userId, poiId]
+      [collectible.id, userId, body.poiId]
     );
 
     await client.query("COMMIT");
@@ -218,7 +189,9 @@ export async function POST(request: Request) {
       {
         id: collectible.id,
         acquiredAt: collectible.acquired_at,
-        name: "Golden Apple",
+        name: poi.name,
+        points: poi.points,
+        source: poi.source,
       },
       { status: 201 }
     );

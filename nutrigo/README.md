@@ -50,8 +50,10 @@ environment variable identifies the user while the feature is being tested.
 Replace it with the authenticated user's ID when authentication is added.
 
 When the player is within 100 meters of the generated Golden Apple marker,
-the **Collect** button in `src/app/components/MapView.tsx` calls the
-collectible API. The API records both the owned collectible and its `acquired`
+`src/app/components/MapView.tsx` first calls the POI API to create the
+location and its Golden Apple appearance. The **Collect** button then calls
+the collectible API with those IDs. The collectible API only verifies the
+existing POI/appearance and records the owned collectible plus its `acquired`
 lifecycle event in one database transaction.
 
 ### Verify the project

@@ -42,16 +42,22 @@ interface MapViewProps {
   stepGoal: number;
 }
 
+type MapCollectible = POIItem & {
+  poiId: string;
+  collectibleTypeId: string;
+  source: "step_path" | "hard_coded";
+};
+
 export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
   const [userLocation, setUserLocation] = useState<Coordinate | null>(null);
-  const [poi, setPoi] = useState<POIItem | null>(null);
+  const [pois, setPois] = useState<MapCollectible[]>([]);
   const [route, setRoute] = useState<[number, number][]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [collecting, setCollecting] = useState(false);
-  const [collected, setCollected] = useState(false);
+  const [collectedPoiIds, setCollectedPoiIds] = useState<string[]>([]);
 
-  const collectItem = () => {
-    if (!poi || collecting) {
+  const collectItem = (selectedPoi: MapCollectible) => {
+    if (collecting || collectedPoiIds.includes(selectedPoi.poiId)) {
       return;
     }
 
@@ -65,8 +71,8 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
             body: JSON.stringify({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
-              targetLatitude: poi.lat,
-              targetLongitude: poi.lng,
+              poiId: selectedPoi.poiId,
+              collectibleTypeId: selectedPoi.collectibleTypeId,
             }),
           });
 
@@ -75,7 +81,7 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
             throw new Error(result.error ?? "Unable to collect this item");
           }
 
-          setCollected(true);
+          setCollectedPoiIds((current) => [...current, selectedPoi.poiId]);
         } catch (error) {
           console.error("Collectible collection failed:", error);
           alert(
@@ -105,8 +111,6 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
           setUserLocation(origin);
 
           const targetItem = generatePOILocation(origin, currentSteps, stepGoal);
-          setPoi(targetItem);
-          setCollected(false);
 
           const streetCoords = await fetchStreetRoute(origin, {
             lat: targetItem.lat,
@@ -118,6 +122,72 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
             pt.lng,
           ]);
           setRoute(polylineCoords);
+
+          const routeIndexes = [
+            Math.floor(streetCoords.length / 3),
+            Math.floor(streetCoords.length / 2),
+            Math.floor((streetCoords.length * 2) / 3),
+          ];
+
+          const stepPathPois = await Promise.all(
+            routeIndexes.map(async (routeIndex, index) => {
+              const routePoint = streetCoords[routeIndex] ?? origin;
+              const poiResponse = await fetch("/api/pois", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  latitude: routePoint.lat,
+                  longitude: routePoint.lng,
+                  name: `Step Path Collectible ${index + 1}`,
+                }),
+              });
+
+              if (!poiResponse.ok) {
+                throw new Error("Unable to create a route collectible");
+              }
+
+              const savedPoi = (await poiResponse.json()) as {
+                poiId: string;
+                collectibleTypeId: string;
+                name: string;
+                points: number;
+              };
+
+              return {
+                name: savedPoi.name,
+                points: savedPoi.points,
+                lat: routePoint.lat,
+                lng: routePoint.lng,
+                poiId: savedPoi.poiId,
+                collectibleTypeId: savedPoi.collectibleTypeId,
+                source: "step_path" as const,
+              };
+            })
+          );
+
+          const fixedPoiResponse = await fetch("/api/pois");
+          if (!fixedPoiResponse.ok) {
+            throw new Error("Unable to load fixed collectibles");
+          }
+
+          const fixedPoiData = (await fixedPoiResponse.json()) as {
+            pois: Array<
+              Omit<MapCollectible, "lat" | "lng"> & {
+                latitude: number;
+                longitude: number;
+              }
+            >;
+          };
+
+          setPois([
+            ...stepPathPois,
+            ...fixedPoiData.pois.map((fixedPoi) => ({
+              ...fixedPoi,
+              lat: fixedPoi.latitude,
+              lng: fixedPoi.longitude,
+            })),
+          ]);
+          setCollectedPoiIds([]);
           setLoading(false);
         },
         (error) => {
@@ -155,17 +225,20 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
           <Popup>You Are Here</Popup>
         </Marker>
 
-        {poi && (
-          <Marker position={[poi.lat, poi.lng]} icon={defaultIcon}>
+        {pois.map((poi) => (
+          <Marker key={poi.poiId} position={[poi.lat, poi.lng]} icon={defaultIcon}>
             <Popup>
               <strong>{poi.name}</strong>
-              <p>{poi.points} points</p>
-              {collected ? (
+              <p>
+                {poi.points} points{" "}
+                {poi.source === "hard_coded" ? "(campus bonus)" : "(step path)"}
+              </p>
+              {collectedPoiIds.includes(poi.poiId) ? (
                 <p>Collected!</p>
               ) : (
                 <button
                   type="button"
-                  onClick={collectItem}
+                  onClick={() => collectItem(poi)}
                   disabled={collecting}
                   style={{
                     borderRadius: 6,
@@ -180,7 +253,7 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
               )}
             </Popup>
           </Marker>
-        )}
+        ))}
 
         {route.length > 0 && <Polyline positions={route} color="#8B5CF6" weight={5} />}
       </MapContainer>
