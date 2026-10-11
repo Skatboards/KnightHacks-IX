@@ -85,7 +85,7 @@ npm run db:reset -- --yes
 ```
 
 After the schema is recreated, the reset also applies
-[`scripts/seed-dev-db.sql`](../scripts/seed-dev-db.sql). This creates a local
+[`nutrigo/scripts/seed-dev-db.sql`](../nutrigo/scripts/seed-dev-db.sql). This creates a local
 development user, sample food types, POIs, appearances, owned collectibles,
 and acquisition events. Set `NUTRIGO_USER_ID` to
 `11111111-1111-4111-8111-111111111111` in `.env.local` to use the seeded user.
