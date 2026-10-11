@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { createDemoPoi, getDemoPois } from "@/lib/demo-store";
 
 type PoiRequest = {
   latitude: number;
@@ -40,6 +41,19 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Valid latitude and longitude are required" },
       { status: 400 }
+    );
+  }
+
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      createDemoPoi({
+        name: body.name ?? "Step Path Collectible",
+        points: 150,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        source: "step_path",
+      }),
+      { status: 201 }
     );
   }
 
@@ -136,6 +150,21 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  if (!process.env.DATABASE_URL) {
+    const existing = getDemoPois().filter((poi) => poi.source === "hard_coded");
+    const fixedPois =
+      existing.length === HARD_CODED_POIS.length
+        ? existing
+        : HARD_CODED_POIS.map((poi) =>
+            createDemoPoi({
+              ...poi,
+              source: "hard_coded",
+            })
+          );
+
+    return NextResponse.json({ pois: fixedPois });
+  }
+
     const client = await db.connect();
 
     try {

@@ -15,6 +15,12 @@ type LeaderboardResponse = {
   leaderboard: LeaderboardEntry[];
 };
 
+function calculateScore(steps: number, collectiblePoints: number) {
+  return collectiblePoints === 0
+    ? steps
+    : (steps * collectiblePoints) / 100;
+}
+
 interface LeaderboardProps {
   currentSteps: number;
 }
@@ -43,7 +49,7 @@ export default function Leaderboard({ currentSteps }: LeaderboardProps) {
       displayName: "You",
       steps: currentSteps,
       collectiblePoints: 0,
-      score: currentSteps,
+      score: calculateScore(currentSteps, 0),
       rank: 0,
     };
 
@@ -58,7 +64,8 @@ export default function Leaderboard({ currentSteps }: LeaderboardProps) {
         <div>
           <h2 className="text-xl font-bold text-purple-300">Leaderboard</h2>
           <p className="text-xs text-gray-400">
-            Proof of concept: steps + collectible points
+            Score: steps when no collectibles; otherwise (steps × collectible
+            points) ÷ 100
           </p>
         </div>
         <span className="rounded-full bg-purple-500/20 px-3 py-1 text-xs text-purple-200">

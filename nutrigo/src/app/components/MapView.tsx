@@ -83,10 +83,9 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
 
           setCollectedPoiIds((current) => [...current, selectedPoi.poiId]);
         } catch (error) {
-          console.error("Collectible collection failed:", error);
-          alert(
-            error instanceof Error ? error.message : "Unable to collect this item"
-          );
+          const message =
+            error instanceof Error ? error.message : "Unable to collect this item";
+          alert(message);
         } finally {
           setCollecting(false);
         }
@@ -143,7 +142,8 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
               });
 
               if (!poiResponse.ok) {
-                throw new Error("Unable to create a route collectible");
+                const error = (await poiResponse.json()) as { error?: string };
+                throw new Error(error.error ?? "Unable to create a route collectible");
               }
 
               const savedPoi = (await poiResponse.json()) as {
@@ -167,7 +167,8 @@ export default function MapView({ currentSteps, stepGoal }: MapViewProps) {
 
           const fixedPoiResponse = await fetch("/api/pois");
           if (!fixedPoiResponse.ok) {
-            throw new Error("Unable to load fixed collectibles");
+            const error = (await fixedPoiResponse.json()) as { error?: string };
+            throw new Error(error.error ?? "Unable to load fixed collectibles");
           }
 
           const fixedPoiData = (await fixedPoiResponse.json()) as {

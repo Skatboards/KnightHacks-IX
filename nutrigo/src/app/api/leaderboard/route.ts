@@ -15,11 +15,17 @@ const demoPlayers = [
   { id: "taylor", displayName: "Taylor", steps: 5100, collectiblePoints: 500 },
 ];
 
+function calculateScore(steps: number, collectiblePoints: number) {
+  return collectiblePoints === 0
+    ? steps
+    : (steps * collectiblePoints) / 100;
+}
+
 export async function GET() {
   const leaderboard: LeaderboardEntry[] = demoPlayers
     .map((player) => ({
       ...player,
-      score: player.steps + player.collectiblePoints,
+      score: calculateScore(player.steps, player.collectiblePoints),
     }))
     .sort((left, right) => right.score - left.score)
     .map((player, index) => ({
@@ -29,7 +35,8 @@ export async function GET() {
 
   return NextResponse.json({
     demo: true,
-    scoring: "steps + collectible points",
+    scoring:
+      "steps when collectible points are 0; otherwise (steps * total collectible points) / 100",
     leaderboard,
   });
 }

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import {
+  getDemoPoi,
+  markDemoPoiCollected,
+} from "@/lib/demo-store";
 
 type CollectibleRequest = {
   poiId: string;
@@ -8,7 +12,7 @@ type CollectibleRequest = {
   longitude: number;
 };
 
-const MAX_COLLECTION_DISTANCE_METERS = 100;
+const MAX_COLLECTION_DISTANCE_METERS = 20;
 
 function isCoordinate(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
@@ -55,6 +59,48 @@ export async function POST(request: Request) {
           "poiId, collectibleTypeId, latitude, and longitude are required",
       },
       { status: 400 }
+    );
+  }
+
+  if (!process.env.DATABASE_URL) {
+    const poi = getDemoPoi(body.poiId);
+    if (!poi || poi.collectibleTypeId !== body.collectibleTypeId) {
+      return NextResponse.json({ error: "POI was not found" }, { status: 404 });
+    }
+
+    const distance = distanceInMeters(
+      body.latitude,
+      body.longitude,
+      poi.latitude,
+      poi.longitude
+    );
+
+    if (distance > MAX_COLLECTION_DISTANCE_METERS) {
+      return NextResponse.json(
+        {
+          error: `Move within ${MAX_COLLECTION_DISTANCE_METERS} meters to collect this item.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!markDemoPoiCollected(poi.poiId)) {
+      return NextResponse.json(
+        { error: "This collectible has already been collected" },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        id: poi.poiId,
+        acquiredAt: new Date().toISOString(),
+        name: poi.name,
+        points: poi.points,
+        source: poi.source,
+        demo: true,
+      },
+      { status: 201 }
     );
   }
 
