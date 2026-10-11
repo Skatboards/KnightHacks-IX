@@ -49,6 +49,7 @@ export async function GET(request: Request) {
             food: food.name,
             category: food.category,
             rarity: food.rarity,
+            asset_key: food.asset_key,
             calories: nutritionData.calories ?? null,
             serving_amount: nutritionData.serving_amount ?? null,
             serving_unit: nutritionData.serving_unit ?? null,

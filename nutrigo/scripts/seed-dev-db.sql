@@ -37,6 +37,7 @@ INSERT INTO food_collectible_types (
     description,
     category,
     rarity,
+    asset_key,
     nutrition_data,
     metadata
 )
@@ -48,6 +49,7 @@ VALUES
         'A deterministic food record for local development.',
         'fruit',
         'common',
+        'golden-apple',
         '{"calories": 95, "serving_amount": 100, "serving_unit": "g", "basis": "per_100g"}'::jsonb,
         '{"source": "local-seed"}'::jsonb
     ),
@@ -58,6 +60,7 @@ VALUES
         'A deterministic food record for local development.',
         'fruit',
         'common',
+        'banana',
         '{"calories": 89, "serving_amount": 100, "serving_unit": "g", "basis": "per_100g"}'::jsonb,
         '{"source": "local-seed"}'::jsonb
     ),
@@ -68,6 +71,7 @@ VALUES
         'A deterministic food record for local development.',
         'snack',
         'rare',
+        'trail-mix',
         '{"calories": 462, "serving_amount": 100, "serving_unit": "g", "basis": "per_100g"}'::jsonb,
         '{"source": "local-seed"}'::jsonb
     )
@@ -77,6 +81,7 @@ ON CONFLICT (id) DO UPDATE SET
     description = EXCLUDED.description,
     category = EXCLUDED.category,
     rarity = EXCLUDED.rarity,
+    asset_key = EXCLUDED.asset_key,
     nutrition_data = EXCLUDED.nutrition_data,
     metadata = EXCLUDED.metadata,
     is_active = TRUE;
