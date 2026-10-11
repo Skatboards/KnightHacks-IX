@@ -32,6 +32,58 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `src/app/page.tsx`. The page
 auto-updates as you edit the file.
 
+### Start PostgreSQL with Docker Compose
+
+The repository includes a Docker Compose setup for the Next.js app and a
+PostGIS-enabled PostgreSQL server. Docker Desktop or Docker Engine with the
+Compose plugin is required.
+
+From the repository root, configure the development user and start both
+services:
+
+```bash
+cp nutrigo/.env.example nutrigo/.env.local
+# Edit nutrigo/.env.local and set NUTRIGO_USER_ID to an active users.id value.
+docker compose -p nutrigo -f compose.yaml up --build
+# Older installations may use: docker-compose -p nutrigo -f compose.yaml up --build
+```
+
+Open [http://localhost:3000](http://localhost:3000) after the services become
+healthy. The database is available from the host at `localhost:5432` with
+these development credentials:
+
+```text
+Database: nutrigo
+User: nutrigo
+Password: nutrigo_dev_password
+```
+
+The initial schema at
+[`src/lib/db/migrations/0001_initial.sql`](./src/lib/db/migrations/0001_initial.sql)
+is mounted into PostgreSQL's initialization directory and runs automatically
+when the database volume is created for the first time. The migration requires
+PostgreSQL 18 because it uses `uuidv7()`.
+
+Stop the services without deleting the database:
+
+```bash
+docker compose -p nutrigo -f compose.yaml down
+```
+
+To delete and recreate the development database, run the guarded reset script
+from the `nutrigo` directory:
+
+```bash
+npm run db:reset
+```
+
+The script asks for confirmation, removes only the Compose database volume,
+and starts the services again. For a non-interactive reset, run:
+
+```bash
+npm run db:reset -- --yes
+```
+
 ### Verify the project
 
 Create a production build with:

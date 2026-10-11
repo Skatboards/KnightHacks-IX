@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "import:usda": "tsx scripts/import-usda.ts"
+    "import:usda": "tsx scripts/import-usda.ts",
+    "db:reset": "bash ../scripts/reset-db.sh"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
