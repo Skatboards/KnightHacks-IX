@@ -84,6 +84,9 @@ and starts the services again. For a non-interactive reset, run:
 npm run db:reset -- --yes
 ```
 
+The API reference is available in the repository's
+[`docs/API.md`](../docs/API.md) file.
+
 ### Verify the project
 
 Create a production build with:

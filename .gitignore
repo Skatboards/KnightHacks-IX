@@ -1,2 +1,6 @@
 # planning
 *.md
+
+# app-related docs
+!docs/
+!docs/**
