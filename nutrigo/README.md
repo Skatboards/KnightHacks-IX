@@ -56,6 +56,25 @@ the collectible API with those IDs. The collectible API only verifies the
 existing POI/appearance and records the owned collectible plus its `acquired`
 lifecycle event in one database transaction.
 
+The AR collectible panel watches the player's location and shows the nearest
+collectible when it is within 20 meters. Pressing **Collect** opens the rear
+camera; pressing **Confirm collection** in the camera view submits the same
+location-validated collectible request.
+
+For local demonstrations, use **Place here** in the AR panel after location
+access is granted. It creates a `Demo Collectible` at the current GPS
+coordinates through the POI API, making it immediately available to test the
+collect-and-confirm camera flow.
+
+When the camera opens, the AR apple uses the device compass and GPS bearing
+to move horizontally in the camera view as the player turns. iOS may ask for
+motion and orientation permission when **Collect** is pressed. Compass support
+is device/browser dependent; if it is unavailable, the app shows a calibration
+message and still preserves the location-based collection check.
+The compass overlay must be tested on a phone or tablet with motion sensors;
+desktop browsers generally do not emit device-orientation events, so the apple
+will remain centered there.
+
 ### Verify the project
 
 Create a production build with:

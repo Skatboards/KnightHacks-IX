@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { readDemoScore } from "@/lib/demo-score";
 
 type LeaderboardEntry = {
   id: string;
@@ -18,7 +19,7 @@ type LeaderboardResponse = {
 function calculateScore(steps: number, collectiblePoints: number) {
   return collectiblePoints === 0
     ? steps
-    : (steps * collectiblePoints) / 100;
+    : (steps * collectiblePoints) / 10000;
 }
 
 interface LeaderboardProps {
@@ -28,8 +29,17 @@ interface LeaderboardProps {
 export default function Leaderboard({ currentSteps }: LeaderboardProps) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [collectiblePoints, setCollectiblePoints] = useState(0);
 
   useEffect(() => {
+    const updateDemoScore = () => {
+      setCollectiblePoints(readDemoScore().collectiblePoints);
+    };
+
+    updateDemoScore();
+    window.addEventListener("storage", updateDemoScore);
+    window.addEventListener("nutrigo-demo-score-updated", updateDemoScore);
+
     fetch("/api/leaderboard")
       .then((response) => {
         if (!response.ok) {
@@ -41,6 +51,11 @@ export default function Leaderboard({ currentSteps }: LeaderboardProps) {
       .then((data) => setEntries(data.leaderboard))
       .catch((error) => console.error("Leaderboard loading failed:", error))
       .finally(() => setLoading(false));
+
+    return () => {
+      window.removeEventListener("storage", updateDemoScore);
+      window.removeEventListener("nutrigo-demo-score-updated", updateDemoScore);
+    };
   }, []);
 
   const leaderboard = useMemo(() => {
@@ -48,15 +63,15 @@ export default function Leaderboard({ currentSteps }: LeaderboardProps) {
       id: "you",
       displayName: "You",
       steps: currentSteps,
-      collectiblePoints: 0,
-      score: calculateScore(currentSteps, 0),
+      collectiblePoints,
+      score: calculateScore(currentSteps, collectiblePoints),
       rank: 0,
     };
 
     return [...entries, demoPlayer]
       .sort((left, right) => right.score - left.score)
       .map((entry, index) => ({ ...entry, rank: index + 1 }));
-  }, [currentSteps, entries]);
+  }, [collectiblePoints, currentSteps, entries]);
 
   return (
     <section className="w-full max-w-md rounded-xl border border-gray-700 bg-gray-800 p-5 text-white">
@@ -65,7 +80,7 @@ export default function Leaderboard({ currentSteps }: LeaderboardProps) {
           <h2 className="text-xl font-bold text-purple-300">Leaderboard</h2>
           <p className="text-xs text-gray-400">
             Score: steps when no collectibles; otherwise (steps × collectible
-            points) ÷ 100
+            points) ÷ 10,000
           </p>
         </div>
         <span className="rounded-full bg-purple-500/20 px-3 py-1 text-xs text-purple-200">
