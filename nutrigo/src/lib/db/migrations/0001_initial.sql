@@ -193,10 +193,11 @@ CREATE INDEX route_waypoints_location_gist_idx
 
 CREATE TABLE food_collectible_types (
     id UUID PRIMARY KEY DEFAULT uuidv7(),
+    external_id TEXT NOT NULL UNIQUE CHECK (btrim(external_id) <> ''),
     name TEXT NOT NULL CHECK (btrim(name) <> ''),
     description TEXT,
     category TEXT NOT NULL CHECK (btrim(category) <> ''),
-    rarity TEXT NOT NULL CHECK (btrim(rarity) <> ''),
+    rarity TEXT NOT NULL DEFAULT 'none' CHECK (btrim(rarity) <> ''),
     nutrition_data JSONB NOT NULL
         CHECK (
             jsonb_typeof(nutrition_data) = 'object'
