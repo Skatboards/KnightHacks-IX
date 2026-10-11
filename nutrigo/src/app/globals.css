@@ -6,6 +6,8 @@
 @theme {
   --color-some-purple: #D5BEE2;
   --color-lightish-pink: #F2DBF5;
+  --color-purplish: #9E9BD8;  
+  --color-off-blue: #D8E9F1; 
 }
 
 .b612-mono-regular {
@@ -57,7 +59,7 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  font-size: 35px;  
+  font-size: 30px;    
   color: whitesmoke;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   text-decoration: none;
@@ -99,15 +101,7 @@
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-.leave-profile{
-  display: inline-block; 
-  border: 5px solid white;
-  background-color: #b790c8;  
-  border-radius: 50%;
-  width: 4.5rem;    
-  height: 4.5rem; 
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-}
+
 
 /*Profile page*/
 .Meter-box{
@@ -215,6 +209,22 @@ flex-direction: column;
 
 }
 
+.leave-profile{
+  display: inline-block; 
+  border: 5px solid white;
+  background-color: #b790c8;  
+  border-radius: 50%;
+  width: 4rem;     
+  height: 4rem; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.leave-profile-image{
+  width: 50%; 
+  height: 50%;  
+  object-fit: cover;
+}
 
 /*Circle meter*/
 .circle-bar-outer {
@@ -303,4 +313,11 @@ select{
 .signupheading{ 
   margin-top: 20px; 
   font-size: 50px; 
+}
+
+.Search-input{
+  border: 2px solid #b9b9b9; 
+  border-radius: 20px; 
+  background-color: aliceblue;
+  height: 40px;     
 }

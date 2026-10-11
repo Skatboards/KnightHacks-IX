@@ -210,7 +210,7 @@ export default function profile() {
     <a
         href="/Map"
         className="leave-profile absolute left-2 bottom-5"
-      />
+      ><img className="p-3" src="/x-symbol-svgrepo-com.svg" alt="Close the page"></img></a>
     </div>
   );
 }
