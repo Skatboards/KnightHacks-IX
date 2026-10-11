@@ -146,6 +146,9 @@ flex-direction: column;
   border: 6px solid white;   
     outline: 4px solid #ffffff ; 
   outline-offset: -15px;   
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 .Food-box{
