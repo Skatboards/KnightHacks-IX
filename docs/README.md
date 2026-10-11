@@ -116,13 +116,17 @@ USDA_IMPORT_ADMIN_TOKEN=...
 USDA_IMPORT_ERROR_LOG_PATH=logs/usda-import-errors.log
 ```
 
-Run an import for one or more FoodData Central IDs:
+Run the paginated FoodData Central import:
 
-```bash
-npm run import:usda -- --fdc-id 747448 --fdc-id 170379
+```sh
+npm run import:usda
 ```
 
-The temporary admin endpoint accepts the same IDs at
+The script requests up to 100 FDC IDs at a time from the USDA catalog and
+passes each page to the importer. It continues until the USDA returns an empty
+or partial page.
+
+The temporary admin endpoint also accepts explicit IDs at
 `POST /api/admin/usda/imports` with an `Authorization: Bearer` header. Imported
 records use `usda:fdc:<fdcId>` as `external_id`, default rarity to `none`, and
 map USDA categories to the application taxonomy with `Other` as the fallback.
