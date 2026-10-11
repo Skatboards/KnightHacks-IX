@@ -14,7 +14,7 @@ export default async function getFoodInfo(
     foodName: string
 ): Promise<FoodInfo | undefined> {
     const response = await fetch(
-        `/api/food-info?food=${encodeURIComponent(foodName)}`
+        `/api/foods?name=${encodeURIComponent(foodName)}`
     );
 
     const data = await response.json();

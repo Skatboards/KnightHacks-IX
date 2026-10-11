@@ -3,7 +3,7 @@ import { findFoodTypes } from "@/lib/db/food-types";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const foodName = searchParams.get("food")?.trim();
+    const foodName = searchParams.get("name")?.trim();
     const externalId = searchParams.get("external_id")?.trim();
 
     if (!foodName && !externalId) {

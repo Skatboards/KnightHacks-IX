@@ -123,7 +123,7 @@ npm run import:usda -- --fdc-id 747448 --fdc-id 170379
 ```
 
 The temporary admin endpoint accepts the same IDs at
-`POST /api/admin/usda/import` with an `Authorization: Bearer` header. Imported
+`POST /api/admin/usda/imports` with an `Authorization: Bearer` header. Imported
 records use `usda:fdc:<fdcId>` as `external_id`, default rarity to `none`, and
 map USDA categories to the application taxonomy with `Other` as the fallback.
 Failed imports are appended as JSON lines to the configured server-side log
