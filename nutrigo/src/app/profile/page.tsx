@@ -49,7 +49,7 @@ export default function profile() {
   };
 
   return (
-    <body className="bg-some-purple">
+    <div className="bg-some-purple">
       <div className="flex flex-col items-center">
         <div className="Meter-box mt-10 p-2.5">
           {/*place the meter for steps and Calories here*/}
@@ -90,12 +90,20 @@ export default function profile() {
         <h1 className="text-[27px] pl-1 pt-1.5 b612-mono-bold">{monthYearString}</h1>
         <div className="flex">
           <div onClick={handlePrevWeek} className="cursor-pointer">
-            <Circlebutton  />
+            <Circlebutton 
+            color="#FFCCCC" 
+            icon="\back-arrow-icon.svg"
+            iconClassName=" brightness-0 invert" />
+            
           </div>
           <div className="mx-2 cursor-pointer" onClick={handleNextWeek}>
-            <Circlebutton  />
-          </div>
-        </div>
+  <Circlebutton 
+    color="#FFCCCC"
+    icon="\previous-arrow-icon.svg"
+    iconClassName=" brightness-0 invert" 
+  />
+</div>
+        </div> 
       </div>
 
       {/* Days of the Week Row */}
@@ -127,33 +135,34 @@ export default function profile() {
           <div className="Food-box flex justify-between ">
             <p className="Food-box-text b612-mono-bold">Breakfast</p>
             <div className="mt-[8px] mr-[5px]">
-              <Circlebutton></Circlebutton>
+              <Circlebutton icon="\plus-symbol-button-svgrepo-com.svg"
+              ></Circlebutton>
             </div>
             {/*Add Icons and also calories added*/}
           </div>
           <div className="Food-box flex justify-between">
             <p className="Food-box-text b612-mono-bold">Lunch</p>
             <div className="mt-[8px] mr-[5px]">
-              <Circlebutton></Circlebutton>
+              <Circlebutton icon="\plus-symbol-button-svgrepo-com.svg" ></Circlebutton>
             </div>
             {/*Add Icons */}
           </div>
           <div className="Food-box flex justify-between">
             <p className="Food-box-text b612-mono-bold">Dinner</p>
             <div className="mt-[8px] mr-[5px]">
-              <Circlebutton></Circlebutton>
+              <Circlebutton icon="\plus-symbol-button-svgrepo-com.svg"></Circlebutton>
             </div>
             {/*Add Icons */}
           </div>
           <div className="Food-box flex justify-between">
             <p className="Food-box-text b612-mono-bold">Snacks</p>
             <div className="mt-[8px] mr-[5px]">
-              <Circlebutton></Circlebutton>
+              <Circlebutton icon="\plus-symbol-button-svgrepo-com.svg"></Circlebutton>
             </div>
             {/*Add Icons */}
           </div>
         </div>
       </div>
-    </body>
+    </div>
   );
 }
