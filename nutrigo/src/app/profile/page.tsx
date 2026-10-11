@@ -126,28 +126,28 @@ export default function profile() {
         <div className="mt-10">
           <div className="Food-box flex justify-between ">
             <p className="Food-box-text b612-mono-bold">Breakfast</p>
-            <div className="mt-2 mr-2">
+            <div className="mt-[8px] mr-[5px]">
               <Circlebutton></Circlebutton>
             </div>
             {/*Add Icons and also calories added*/}
           </div>
           <div className="Food-box flex justify-between">
             <p className="Food-box-text b612-mono-bold">Lunch</p>
-            <div className="mt-2 mr-2">
+            <div className="mt-[8px] mr-[5px]">
               <Circlebutton></Circlebutton>
             </div>
             {/*Add Icons */}
           </div>
           <div className="Food-box flex justify-between">
             <p className="Food-box-text b612-mono-bold">Dinner</p>
-            <div className="mt-2 mr-2">
+            <div className="mt-[8px] mr-[5px]">
               <Circlebutton></Circlebutton>
             </div>
             {/*Add Icons */}
           </div>
           <div className="Food-box flex justify-between">
             <p className="Food-box-text b612-mono-bold">Snacks</p>
-            <div className="mt-1.5 mr-2">
+            <div className="mt-[8px] mr-[5px]">
               <Circlebutton></Circlebutton>
             </div>
             {/*Add Icons */}

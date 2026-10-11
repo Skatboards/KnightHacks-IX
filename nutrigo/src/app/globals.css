@@ -19,26 +19,80 @@
   font-style: normal;
 }
 
-.Map-Buttons{
+
+/*Map Page*/
+/* Top Steps Indicator Pill */
+.Steps-Pill {
   border: 4px solid white;
   background-color: #C8BAF1;
   border-radius: 50px;
-  width: 30pc;
-  height: 6pc;
-display: flex;
-  justify-content: center; /* Centers text horizontally */
-  align-items: center;     /* Centers text vertically */
+  width: 80%;
+  max-width: 400px;
+  height: 4.5rem; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  font-size: 26px;
+  font-size: 24px;
   color: whitesmoke;
-
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+   border: 3px solid white;
+  outline: 2px solid #C8BAF1;
+  outline-offset: 6px; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);  
+  border: 6px solid white;   
+    outline: 4px solid #ffffff ; 
+  outline-offset: -15px;    
 }
 
+/* Bottom Navigation Buttons (Dex & Profile) */
+.Map-Buttons {
+  border: 4px solid white;
+  background-color: #C8BAF1;
+  border-radius: 50px;
+  width: 32%; 
+  height: 5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 22px;
+  color: whitesmoke;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  /* Double accent border using outline and border */
+  border: 4px solid white;
+  outline: 4px solid #ffffff; 
+  outline-offset: -12px;   
+   
+  
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);  
+}
 
-.Meter-box{
+/* Middle Circle Button */
+.Center-Circle-Button {
+  border: 4px solid white;
+  background-color: #b0d0d3; /* Soft teal matching the prototype */
+  border-radius: 50%;
+  width: 5rem;
+  height: 5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  cursor: pointer; 
+  /* Double accent border matching the others */
   border: 3px solid white;
+  outline: 2px solid #b0d0d3;
+  outline-offset: 6px; 
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/*Profile page*/
+.Meter-box{
+  border: 4px solid white;
   background-color: #C4D0F4;
-  border-radius: 20px;
+  border-radius: 30px; 
   height: auto;
   width: 425px; 
   display: grid;
@@ -47,6 +101,10 @@ display: flex;
   grid-column-gap: 0px;
   grid-row-gap: 0px;
   box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.25);
+
+  border: 6px solid white;   
+    outline: 4px solid #ffffff ; 
+  outline-offset: -15px;   
 }
 
 
@@ -74,6 +132,9 @@ flex-direction: column;
   height: 200px;
   width: 425px;
   box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.25);
+  border: 6px solid white;   
+    outline: 4px solid #ffffff ; 
+  outline-offset: -15px;   
 }
 
 .Food-box{
@@ -83,13 +144,16 @@ flex-direction: column;
   width: 425px;
   border-radius: 40px;
   padding-left: 20px;
-  margin-top: 5px;
+  margin-top: 5px; 
   box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.25);
+  border: 6px solid white;   
+    outline: 2.5px solid #ffffff ; 
+  outline-offset: -14px;   
 
 }
 
 .Food-box-text{
-  margin-top: 5px;
+  margin-top: 1px; 
   display: flex;
   flex-direction: row;
   align-items: center;     /* Centers text vertically */
