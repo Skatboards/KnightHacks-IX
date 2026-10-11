@@ -20,7 +20,15 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gray-900 text-white space-y-6">
-      <h1 className="text-3xl font-bold text-purple-400">NutriGo Pathfinder</h1>
+      <div className="flex w-full max-w-md items-center justify-between">
+        <h1 className="text-3xl font-bold text-purple-400">NutriGo Pathfinder</h1>
+        <a
+          href="/leaderboard"
+          className="rounded-lg bg-purple-600 px-3 py-2 text-sm font-medium hover:bg-purple-500"
+        >
+          Leaderboard
+        </a>
+      </div>
 
       <div className="w-full max-w-md bg-gray-800 p-6 rounded-xl border border-gray-700 space-y-4">
         
