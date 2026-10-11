@@ -207,6 +207,10 @@ export default function profile() {
           </div>
         </div>
       </div>
+    <a
+        href="/Map"
+        className="leave-profile absolute left-2 bottom-5"
+      />
     </div>
   );
 }
